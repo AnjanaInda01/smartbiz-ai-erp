@@ -6,6 +6,8 @@ import com.smartbiz.backend.dto.response.AuthResponse;
 import com.smartbiz.backend.entity.Business;
 import com.smartbiz.backend.entity.User;
 import com.smartbiz.backend.enums.Role;
+import com.smartbiz.backend.exception.BadRequestException;
+import com.smartbiz.backend.exception.ConflictException;
 import com.smartbiz.backend.repository.BusinessRepository;
 import com.smartbiz.backend.repository.UserRepository;
 import com.smartbiz.backend.security.JwtService;
@@ -31,7 +33,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getOwnerEmail())) {
-            throw new RuntimeException("Email already registered");
+            throw new ConflictException("Email already registered");
         }
 
         Business business = new Business();
@@ -62,7 +64,7 @@ public class AuthServiceImpl implements AuthService {
         );
 
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Invalid credentials"));
+                .orElseThrow(() -> new BadRequestException("Invalid credentials"));
 
         Long businessId = (user.getBusiness() != null) ? user.getBusiness().getId() : null;
 
