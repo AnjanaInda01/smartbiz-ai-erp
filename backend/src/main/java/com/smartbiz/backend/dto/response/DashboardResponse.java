@@ -11,6 +11,8 @@ import java.util.List;
 public class DashboardResponse {
     private BigDecimal todaySales;
     private BigDecimal monthSales;
+    private BigDecimal todayProfit;
+    private BigDecimal monthProfit;
     private long totalCustomers;
     private long totalProducts;
     private List<LowStockProduct> lowStockProducts;

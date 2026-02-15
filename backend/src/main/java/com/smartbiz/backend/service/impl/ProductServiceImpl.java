@@ -10,6 +10,7 @@ import com.smartbiz.backend.repository.BusinessRepository;
 import com.smartbiz.backend.repository.ProductRepository;
 import com.smartbiz.backend.service.CurrentUserService;
 import com.smartbiz.backend.service.ProductService;
+import com.smartbiz.backend.service.SubscriptionService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,21 +23,33 @@ import java.util.List;
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
-    private final BusinessRepository businessRepository;
     private final CurrentUserService currentUserService;
-
+    private final SubscriptionService subscriptionService;
 
     @Override
     public ProductResponse create(ProductCreateRequest request) {
+
         Long businessId = currentUserService.getCurrentBusinessId();
+
+        // 🔥 PLAN LIMIT CHECK
+        long currentProductCount =
+                productRepository.countByBusiness_Id(businessId);
+
+        int maxProducts =
+                subscriptionService.getCurrentPlan(businessId)
+                        .getMaxProducts();
+
+        if (currentProductCount >= maxProducts) {
+            throw new ConflictException("Product limit reached for your subscription plan");
+        }
 
         if (request.getSku() != null && !request.getSku().isBlank()) {
             if (productRepository.existsBySkuAndBusiness_Id(request.getSku(), businessId)) {
                 throw new ConflictException("SKU already exists for this business");
             }
         }
-        Business business = businessRepository.findById(businessId)
-                .orElseThrow(() -> new ResourceNotFoundException("Business not found: " + businessId));
+
+        Business business = currentUserService.getCurrentUser().getBusiness();
 
         Product p = new Product();
         p.setBusiness(business);
@@ -48,6 +61,7 @@ public class ProductServiceImpl implements ProductService {
 
         return toResponse(productRepository.save(p));
     }
+
 
     @Override
     public List<ProductResponse> getAll() {

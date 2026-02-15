@@ -27,6 +27,10 @@ public class Product {
     @Column(nullable = false,precision =  10,scale=2)
     private BigDecimal unitPrice;
 
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal costPrice;
+
+
     @Column(nullable = false)
     private Integer stockQty=0;
 

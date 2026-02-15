@@ -35,6 +35,9 @@ public class InvoiceItem {
     @Column(nullable = false)
     private Integer qty;
 
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal costPrice;
+
     // snapshot selling price at invoice time
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal unitPrice;
