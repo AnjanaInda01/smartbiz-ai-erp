@@ -10,11 +10,18 @@ import java.time.Instant;
 @Entity
 @Table(
         name = "customers",
+        uniqueConstraints = {
+                @UniqueConstraint(
+                        name = "uk_customer_business_email",
+                        columnNames = {"business_id", "email"}
+                )
+        },
         indexes = {
                 @Index(name = "idx_customers_business", columnList = "business_id"),
                 @Index(name = "idx_customers_business_active", columnList = "business_id,active")
         }
 )
+
 @Getter
 @Setter
 @NoArgsConstructor
