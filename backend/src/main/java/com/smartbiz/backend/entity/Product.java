@@ -30,6 +30,9 @@ public class Product {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal costPrice;
 
+    @Column(nullable = false, precision = 10, scale = 2)
+    private BigDecimal lastCostPrice = BigDecimal.ZERO;
+
 
     @Column(nullable = false)
     private Integer stockQty=0;

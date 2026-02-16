@@ -32,6 +32,8 @@ public class ReportServiceImpl implements ReportService {
 
         var todaySales = invoiceRepository.sumSalesForDate(businessId, today);
         var monthSales = invoiceRepository.sumSalesBetween(businessId, monthStart, monthEnd);
+        var todayProfit = invoiceRepository.calculateProfitForDate(businessId, today);
+        var monthProfit = invoiceRepository.calculateProfitBetween(businessId, monthStart, monthEnd);
 
         long totalCustomers = customerRepository.countByBusiness_Id(businessId);
         long totalProducts = productRepository.countByBusiness_Id(businessId);
@@ -49,6 +51,8 @@ public class ReportServiceImpl implements ReportService {
         return DashboardResponse.builder()
                 .todaySales(todaySales)
                 .monthSales(monthSales)
+                .todayProfit(todayProfit)
+                .monthProfit(monthProfit)
                 .totalCustomers(totalCustomers)
                 .totalProducts(totalProducts)
                 .lowStockProducts(lowStock)

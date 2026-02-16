@@ -98,6 +98,7 @@ public class PurchaseServiceImpl implements PurchaseService {
         for (PurchaseItem item : purchase.getItems()) {
             Product product = item.getProduct();
             product.setStockQty(product.getStockQty() + item.getQty());
+            product.setLastCostPrice(item.getCostPrice());
             productRepository.save(product);
         }
 
