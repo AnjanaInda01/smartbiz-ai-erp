@@ -20,22 +20,37 @@ import java.util.List;
 @RequiredArgsConstructor
 @EnableMethodSecurity
 public class SecurityConfig {
+
     private final JwtAuthFilter jwtAuthFilter;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
-        http.csrf(csrf -> csrf.disable());
+        http
+                .csrf(csrf -> csrf.disable())
+                .cors(cors -> {})
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
 
-        http.cors(cors -> {});
+                        // 🔓 PUBLIC AUTH ENDPOINTS
+                        .requestMatchers(
+                                "/api/v1/auth/login",
+                                "/api/v1/auth/register",
+                                "/api/v1/auth/forgot-password",
+                                "/api/v1/auth/verify-otp",
+                                "/api/v1/auth/reset-password"
+                        ).permitAll()
 
+                        // 🔓 Allow swagger if needed
+                        .requestMatchers(
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-ui.html"
+                        ).permitAll()
 
-        http.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
-
-        http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/v1/auth/**").permitAll()
-                .anyRequest().authenticated()
-        );
+                        // 🔒 Everything else requires JWT
+                        .anyRequest().authenticated()
+                );
 
         http.addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
@@ -49,15 +64,24 @@ public class SecurityConfig {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
+
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:3000"));
-        config.setAllowedMethods(List.of("GET","POST","PUT","DELETE","PATCH","OPTIONS"));
+
+        config.setAllowedOrigins(List.of(
+                "http://localhost:5173",  // Vite
+                "http://localhost:3000"   // React CRA
+        ));
+
+        config.setAllowedMethods(List.of(
+                "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"
+        ));
+
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
+
         return source;
     }
-
 }
