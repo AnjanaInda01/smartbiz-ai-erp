@@ -110,7 +110,7 @@ public class InvoiceServiceImpl implements InvoiceService {
                     .orElseThrow(() -> new ResourceNotFoundException("Product not found: " + item.getProduct().getId()));
 
             int newQty = product.getStockQty() - item.getQty();
-            if (newQty < 0) {
+            if (product.getStockQty() < item.getQty()) {
                 throw new BadRequestException("Insufficient stock for product: " + product.getName());
             }
 
