@@ -10,16 +10,19 @@ export default function AuthProvider({ children }) {
 
   const loadMe = async () => {
     const token = localStorage.getItem("accessToken");
+
     if (!token) {
+      localStorage.removeItem("me");
       setUser(null);
       setLoading(false);
-      localStorage.setItem("me", JSON.stringify(res.data));
       return;
     }
+
     try {
       const res = await meApi();
       setUser(res.data);
-    } catch {
+      localStorage.setItem("me", JSON.stringify(res.data));
+    } catch (err) {
       localStorage.removeItem("accessToken");
       localStorage.removeItem("me");
       setUser(null);
@@ -44,7 +47,10 @@ export default function AuthProvider({ children }) {
     setUser(null);
   };
 
-  const value = useMemo(() => ({ user, loading, login, logout }), [user, loading]);
+  const value = useMemo(
+    () => ({ user, loading, login, logout, reloadMe: loadMe }),
+    [user, loading]
+  );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
