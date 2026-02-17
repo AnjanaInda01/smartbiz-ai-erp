@@ -18,48 +18,45 @@ export default function App() {
 
   return (
     <Routes>
-      <Route
-        path="/"
-        element={
-          <Navigate to={user ? roleHome(user.role) : "/login"} replace />
-        }
-      />
+      <Route path="/" element={<Navigate to={user ? roleHome(user.role) : "/login"} replace />} />
 
       <Route path="/login" element={<LoginPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/verify-otp" element={<VerifyOtpPage />} />
       <Route path="/reset-password" element={<ResetPasswordPage />} />
 
+      {/* OWNER area */}
       <Route
-        path="/admin"
-        element={
-          <ProtectedRoute allowRoles={["ADMIN"]}>
-            <AdminDashboard />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/owner"
         element={
           <ProtectedRoute allowRoles={["OWNER"]}>
-            <OwnerDashboard />
+            <DashboardLayout />
           </ProtectedRoute>
         }
-      />
+      >
+        <Route path="/owner" element={<OwnerDashboard />} />
+        {/* later: /owner/products, /owner/customers, ... */}
+      </Route>
+
+      {/* STAFF area */}
       <Route
-        path="/staff"
         element={
           <ProtectedRoute allowRoles={["STAFF"]}>
-            <StaffDashboard />
+            <DashboardLayout />
           </ProtectedRoute>
         }
-      />
-      <Route element={<ProtectedRoute />}>
-        <Route element={<DashboardLayout />}>
-          <Route path="/owner" element={<OwnerDashboard />} />
-          <Route path="/staff" element={<StaffDashboard />} />
-          <Route path="/admin" element={<AdminDashboard />} />
-        </Route>
+      >
+        <Route path="/staff" element={<StaffDashboard />} />
+      </Route>
+
+      {/* ADMIN area */}
+      <Route
+        element={
+          <ProtectedRoute allowRoles={["ADMIN"]}>
+            <DashboardLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="/admin" element={<AdminDashboard />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

@@ -15,6 +15,7 @@ import { useNavigate } from "react-router-dom";
 import AuthShell from "../components/AuthShell";
 import { useAuth } from "../auth/AuthProvider";
 import { roleHome } from "../auth/roleRedirect";
+import { useEffect, useState } from "react";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -28,8 +29,9 @@ export default function LoginPage() {
 
   const [error, setError] = useState("");
 
-  // If already logged in
-  if (user) navigate(roleHome(user.role), { replace: true });
+  useEffect(() => {
+    if (user?.role) navigate(roleHome(user.role), { replace: true });
+  }, [user, navigate]);
 
   const validate = () => {
     if (!email.trim()) return "Email is required";
