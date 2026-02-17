@@ -1,6 +1,6 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "./AuthProvider";
-import { roleHome } from "./roleRedirect";
+import { roleHome, isAllowedRole } from "./roleRedirect";
 import LoadingScreen from "../components/LoadingScreen";
 
 export default function ProtectedRoute({ allowRoles, children }) {
@@ -10,8 +10,8 @@ export default function ProtectedRoute({ allowRoles, children }) {
   if (loading) return <LoadingScreen />;
   if (!user) return <Navigate to="/login" state={{ from: location }} replace />;
 
-  if (allowRoles && !allowRoles.includes(user.role)) {
-    return <Navigate to={roleHome(user.role)} replace />;
+  if (allowRoles && !isAllowedRole(user?.role, allowRoles)) {
+    return <Navigate to={roleHome(user?.role)} replace />;
   }
 
   return children;
