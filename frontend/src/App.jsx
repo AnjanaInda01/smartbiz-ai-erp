@@ -14,11 +14,19 @@ import { roleHome } from "./auth/roleRedirect";
 import DashboardLayout from "./layouts/DashboardLayout";
 
 export default function App() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
 
   return (
     <Routes>
-      <Route path="/" element={<Navigate to={user ? roleHome(user.role) : "/login"} replace />} />
+      {/* Prevent redirect flicker while /me is loading */}
+      <Route
+        path="/"
+        element={
+          loading ? null : (
+            <Navigate to={user ? roleHome(user.role) : "/login"} replace />
+          )
+        }
+      />
 
       <Route path="/login" element={<LoginPage />} />
       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
@@ -27,36 +35,42 @@ export default function App() {
 
       {/* OWNER area */}
       <Route
+        path="/owner/*"
         element={
           <ProtectedRoute allowRoles={["OWNER"]}>
             <DashboardLayout />
           </ProtectedRoute>
         }
       >
-        <Route path="/owner" element={<OwnerDashboard />} />
-        {/* later: /owner/products, /owner/customers, ... */}
+        <Route index element={<OwnerDashboard />} />
+        {/* Later:
+            <Route path="products" element={<OwnerProducts />} />
+            <Route path="customers" element={<OwnerCustomers />} />
+        */}
       </Route>
 
       {/* STAFF area */}
       <Route
+        path="/staff/*"
         element={
           <ProtectedRoute allowRoles={["STAFF"]}>
             <DashboardLayout />
           </ProtectedRoute>
         }
       >
-        <Route path="/staff" element={<StaffDashboard />} />
+        <Route index element={<StaffDashboard />} />
       </Route>
 
       {/* ADMIN area */}
       <Route
+        path="/admin/*"
         element={
           <ProtectedRoute allowRoles={["ADMIN"]}>
             <DashboardLayout />
           </ProtectedRoute>
         }
       >
-        <Route path="/admin" element={<AdminDashboard />} />
+        <Route index element={<AdminDashboard />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

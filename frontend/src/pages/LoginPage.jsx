@@ -1,185 +1,175 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
 import {
   Alert,
   Box,
   Button,
+  Card,
+  CardContent,
+  CircularProgress,
+  Divider,
   IconButton,
   InputAdornment,
   Link,
+  Stack,
   TextField,
   Typography,
 } from "@mui/material";
-import { Visibility, VisibilityOff, Lock } from "@mui/icons-material";
-import { motion } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
+
 import AuthShell from "../components/AuthShell";
 import { useAuth } from "../auth/AuthProvider";
 import { roleHome } from "../auth/roleRedirect";
-import { useEffect, useState } from "react";
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+
   const { login, user } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const [showPw, setShowPw] = useState(false);
-  const [loading, setLoading] = useState(false);
-
+  const [showPassword, setShowPassword] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
+  // If user tried to access protected page, we can redirect back after login.
+  const from = useMemo(() => {
+    const state = location.state;
+    // Optional: if you used location.state.from in ProtectedRoute in future
+    if (state && typeof state === "object" && state.from && state.from.pathname) {
+      return state.from.pathname;
+    }
+    return null;
+  }, [location.state]);
+
+  // ✅ Redirect after auth state is ready (no navigation during render)
   useEffect(() => {
-    if (user?.role) navigate(roleHome(user.role), { replace: true });
-  }, [user, navigate]);
+    if (user?.role) {
+      // Prefer "from" if available, else role-based home
+      navigate(from ?? roleHome(user.role), { replace: true });
+    }
+  }, [user, from, navigate]);
 
-  const validate = () => {
-    if (!email.trim()) return "Email is required";
-    const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
-    if (!ok) return "Enter a valid email";
-    if (!password) return "Password is required";
-    if (password.length < 6) return "Password must be at least 6 characters";
-    return "";
-  };
-
-  const onSubmit = async (e) => {
+  async function handleSubmit(e) {
     e.preventDefault();
     setError("");
 
-    const v = validate();
-    if (v) return setError(v);
+    const cleanEmail = email.trim();
+
+    if (!cleanEmail || !password) {
+      setError("Please enter your email and password.");
+      return;
+    }
 
     try {
-      setLoading(true);
-      await login(email.trim(), password);
-      // AuthProvider loads /auth/me, so user role is ready
-      // Navigate after a short tick
-      setTimeout(() => {
-        const stored = JSON.parse(localStorage.getItem("me") || "null");
-        if (stored?.role) navigate(roleHome(stored.role), { replace: true });
-        else navigate("/", { replace: true });
-      }, 50);
+      setSubmitting(true);
+      await login(cleanEmail, password);
+      // ✅ Don't navigate here — useEffect will handle redirect when user is set
     } catch (err) {
-      setError(err?.response?.data?.message || "Invalid email or password");
+      // Your login() may throw with axios error; this keeps it safe
+      const msg =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Login failed. Please check your credentials and try again.";
+      setError(msg);
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
-  };
+  }
 
   return (
-    <AuthShell
-      title="Welcome back"
-      subtitle="Login to SmartBiz to manage inventory, sales and AI insights."
-    >
+    <AuthShell>
       <Box
-        component={motion.form}
-        onSubmit={onSubmit}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.1 }}
-        sx={{ display: "grid", gap: 2 }}
+        sx={{
+          width: "100%",
+          maxWidth: 420,
+          mx: "auto",
+        }}
       >
-        {error ? <Alert severity="error">{error}</Alert> : null}
+        <Card elevation={8} sx={{ borderRadius: 3 }}>
+          <CardContent sx={{ p: 4 }}>
+            <Stack spacing={2}>
+              <Box>
+                <Typography variant="h5" fontWeight={800}>
+                  SmartBiz ERP
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Sign in to continue
+                </Typography>
+              </Box>
 
-        <TextField
-          label="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          autoComplete="email"
-          fullWidth
-          InputLabelProps={{ sx: { color: "rgba(255,255,255,0.7)" } }}
-          sx={fieldSx}
-        />
+              {error ? <Alert severity="error">{error}</Alert> : null}
 
-        <TextField
-          label="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          type={showPw ? "text" : "password"}
-          autoComplete="current-password"
-          fullWidth
-          InputLabelProps={{ sx: { color: "rgba(255,255,255,0.7)" } }}
-          sx={fieldSx}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <Lock sx={{ color: "rgba(255,255,255,0.55)" }} />
-              </InputAdornment>
-            ),
-            endAdornment: (
-              <InputAdornment position="end">
-                <IconButton onClick={() => setShowPw((s) => !s)} edge="end">
-                  {showPw ? (
-                    <VisibilityOff sx={{ color: "rgba(255,255,255,0.7)" }} />
-                  ) : (
-                    <Visibility sx={{ color: "rgba(255,255,255,0.7)" }} />
-                  )}
-                </IconButton>
-              </InputAdornment>
-            ),
-          }}
-        />
+              <Box component="form" onSubmit={handleSubmit}>
+                <Stack spacing={2}>
+                  <TextField
+                    label="Email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    autoComplete="email"
+                    fullWidth
+                  />
 
-        <Box sx={{ display: "flex", justifyContent: "space-between", mt: 0.5 }}>
-          <Link
-            onClick={() => navigate("/forgot-password")}
-            sx={linkSx}
-            underline="hover"
-          >
-            Forgot password?
-          </Link>
+                  <TextField
+                    label="Password"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    autoComplete="current-password"
+                    fullWidth
+                    InputProps={{
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            aria-label={showPassword ? "Hide password" : "Show password"}
+                            onClick={() => setShowPassword((v) => !v)}
+                            edge="end"
+                          >
+                            {showPassword ? <VisibilityOff /> : <Visibility />}
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
 
-          <Typography sx={{ color: "rgba(255,255,255,0.55)", fontSize: 13 }}>
-            Role-based dashboards
-          </Typography>
-        </Box>
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    size="large"
+                    fullWidth
+                    disabled={submitting}
+                    sx={{ py: 1.2, borderRadius: 2 }}
+                  >
+                    {submitting ? (
+                      <Stack direction="row" spacing={1} alignItems="center">
+                        <CircularProgress size={18} />
+                        <span>Signing in...</span>
+                      </Stack>
+                    ) : (
+                      "Sign In"
+                    )}
+                  </Button>
 
-        <Button
-          type="submit"
-          disabled={loading}
-          component={motion.button}
-          whileTap={{ scale: 0.98 }}
-          whileHover={{ scale: 1.01 }}
-          sx={btnSx}
-        >
-          {loading ? "Signing in..." : "Sign in"}
-        </Button>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center">
+                    <Link component={RouterLink} to="/forgot-password" underline="hover">
+                      Forgot password?
+                    </Link>
+                  </Stack>
+
+                  <Divider sx={{ my: 1 }} />
+                  <Typography variant="caption" color="text.secondary">
+                    Tip: Use the correct account role (Admin / Owner / Staff). You’ll be redirected
+                    automatically after login.
+                  </Typography>
+                </Stack>
+              </Box>
+            </Stack>
+          </CardContent>
+        </Card>
       </Box>
     </AuthShell>
   );
 }
-
-const fieldSx = {
-  "& .MuiInputBase-root": {
-    color: "white",
-    background: "rgba(255,255,255,0.06)",
-    borderRadius: 2,
-  },
-  "& .MuiOutlinedInput-notchedOutline": {
-    borderColor: "rgba(255,255,255,0.18)",
-  },
-  "&:hover .MuiOutlinedInput-notchedOutline": {
-    borderColor: "rgba(255,255,255,0.28)",
-  },
-  "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-    borderColor: "rgba(255,255,255,0.45)",
-  },
-};
-
-const btnSx = {
-  mt: 1,
-  py: 1.2,
-  borderRadius: 2.2,
-  textTransform: "none",
-  fontWeight: 800,
-  fontSize: 16,
-  color: "#0b1020",
-  background:
-    "linear-gradient(90deg, rgba(99,102,241,1) 0%, rgba(236,72,153,1) 55%, rgba(34,197,94,1) 100%)",
-};
-
-const linkSx = {
-  cursor: "pointer",
-  color: "rgba(255,255,255,0.8)",
-  fontSize: 13,
-};

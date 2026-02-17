@@ -1,13 +1,14 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "./AuthProvider";
 import { roleHome } from "./roleRedirect";
 import LoadingScreen from "../components/LoadingScreen";
 
 export default function ProtectedRoute({ allowRoles, children }) {
   const { user, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) return <LoadingScreen />;
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) return <Navigate to="/login" state={{ from: location }} replace />;
 
   if (allowRoles && !allowRoles.includes(user.role)) {
     return <Navigate to={roleHome(user.role)} replace />;
@@ -15,4 +16,3 @@ export default function ProtectedRoute({ allowRoles, children }) {
 
   return children;
 }
-
