@@ -1,11 +1,12 @@
-import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useMemo, useState } from "react";
-import { useAuth } from "../auth/AuthProvider";
-
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   AppBar,
+  Avatar,
+  Badge,
   Box,
-  CssBaseline,
+  Button,
+  Chip,
   Divider,
   Drawer,
   IconButton,
@@ -13,110 +14,237 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  Stack,
   Toolbar,
+  Tooltip,
   Typography,
-  Button,
+  alpha,
+  useMediaQuery,
 } from "@mui/material";
+import { useTheme } from "@mui/material/styles";
 
 import MenuIcon from "@mui/icons-material/Menu";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import Inventory2Icon from "@mui/icons-material/Inventory2";
+import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
 import ReceiptLongIcon from "@mui/icons-material/ReceiptLong";
-import PeopleIcon from "@mui/icons-material/People";
 import SmartToyIcon from "@mui/icons-material/SmartToy";
-import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
+import NotificationsNoneIcon from "@mui/icons-material/NotificationsNone";
 import LogoutIcon from "@mui/icons-material/Logout";
+import SearchIcon from "@mui/icons-material/Search";
 
-const drawerWidth = 270;
+import { useAuth } from "../auth/AuthProvider";
+
+const DRAWER_WIDTH = 292;
 
 export default function DashboardLayout() {
-  const { user, logout } = useAuth();
-  const role = user?.role;
-
-  const nav = useNavigate();
-  const loc = useLocation();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const menu = useMemo(() => {
-    if (role === "OWNER") {
-      return [
-        { label: "Dashboard", path: "/owner", icon: <DashboardIcon /> },
-        { label: "Products", path: "/owner/products", icon: <Inventory2Icon /> },
-        { label: "Customers", path: "/owner/customers", icon: <PeopleIcon /> },
-        { label: "Invoices", path: "/owner/invoices", icon: <ReceiptLongIcon /> },
-        { label: "AI Assistant", path: "/owner/ai", icon: <SmartToyIcon /> },
-      ];
-    }
-    if (role === "STAFF") {
-      return [
-        { label: "Dashboard", path: "/staff", icon: <DashboardIcon /> },
-        { label: "Products", path: "/staff/products", icon: <Inventory2Icon /> },
-        { label: "Invoices", path: "/staff/invoices", icon: <ReceiptLongIcon /> },
-      ];
-    }
-    if (role === "ADMIN") {
-      return [
-        { label: "Admin Dashboard", path: "/admin", icon: <AdminPanelSettingsIcon /> },
-        { label: "Businesses", path: "/admin/businesses", icon: <PeopleIcon /> },
-        { label: "Plans", path: "/admin/plans", icon: <ReceiptLongIcon /> },
-        { label: "AI Usage", path: "/admin/ai-usage", icon: <SmartToyIcon /> },
-      ];
-    }
-    return [];
-  }, [role]);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { user, logout } = useAuth();
 
-  const title = useMemo(() => {
-    if (role === "OWNER") return "Owner Panel";
-    if (role === "STAFF") return "Staff Panel";
-    if (role === "ADMIN") return "Admin Panel";
-    return "Dashboard";
-  }, [role]);
+  const role = (user?.role || "").toString().toUpperCase().replace("ROLE_", "");
+  const basePath =
+    role === "ADMIN" ? "/admin" : role === "STAFF" ? "/staff" : "/owner";
+
+  const navItems = useMemo(() => {
+    const common = [{ label: "Dashboard", path: `${basePath}`, icon: <DashboardIcon /> }];
+
+    if (basePath === "/owner") {
+      return [
+        ...common,
+        { label: "Products", path: `${basePath}/products`, icon: <Inventory2Icon /> },
+        { label: "Customers", path: `${basePath}/customers`, icon: <PeopleAltIcon /> },
+        { label: "Invoices", path: `${basePath}/invoices`, icon: <ReceiptLongIcon /> },
+        { label: "AI Assistant", path: `${basePath}/ai`, icon: <SmartToyIcon /> },
+      ];
+    }
+
+    if (basePath === "/staff") {
+      return [
+        ...common,
+        { label: "Products", path: `${basePath}/products`, icon: <Inventory2Icon /> },
+        { label: "Invoices", path: `${basePath}/invoices`, icon: <ReceiptLongIcon /> },
+      ];
+    }
+
+    return [...common];
+  }, [basePath]);
+
+  const initials = (user?.name || user?.email || "U")
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((s) => s[0]?.toUpperCase())
+    .join("");
+
+  const handleDrawerToggle = () => setMobileOpen((v) => !v);
 
   const drawer = (
-    <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
-      <Box sx={{ px: 2, py: 2 }}>
-        <Typography fontWeight={900} fontSize={18}>SmartBiz</Typography>
-        <Typography variant="body2" sx={{ opacity: 0.75 }}>
-          {user?.email}
+    <Box
+      sx={{
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        px: 2,
+        py: 2,
+        color: "common.white",
+        background: "linear-gradient(180deg, #0B1220 0%, #111B2E 55%, #0B1220 100%)",
+      }}
+    >
+      {/* Brand */}
+      <Stack spacing={1} sx={{ px: 1, pt: 0.5 }}>
+        <Stack direction="row" spacing={1} alignItems="center">
+          <Box
+            sx={{
+              width: 36,
+              height: 36,
+              borderRadius: 2,
+              background: "linear-gradient(135deg, #60A5FA 0%, #2563EB 60%, #1D4ED8 100%)",
+              boxShadow: `0 10px 25px ${alpha("#2563EB", 0.35)}`,
+            }}
+          />
+          <Box>
+            <Typography variant="h6" fontWeight={900} lineHeight={1.1}>
+              SmartBiz ERP
+            </Typography>
+            <Typography variant="caption" sx={{ opacity: 0.75 }}>
+              {role || "USER"} • {user?.email || ""}
+            </Typography>
+          </Box>
+        </Stack>
+      </Stack>
+
+      <Divider sx={{ my: 2, borderColor: alpha("#fff", 0.12) }} />
+
+      {/* Quick search (UI only) */}
+      <Box
+        sx={{
+          mx: 1,
+          mb: 2,
+          px: 1.5,
+          py: 1,
+          borderRadius: 2,
+          backgroundColor: alpha("#fff", 0.06),
+          border: `1px solid ${alpha("#fff", 0.08)}`,
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+        }}
+      >
+        <SearchIcon sx={{ fontSize: 18, opacity: 0.8 }} />
+        <Typography variant="body2" sx={{ opacity: 0.7 }}>
+          Search…
         </Typography>
       </Box>
 
-      <Divider />
+      {/* Nav */}
+      <List sx={{ px: 0.5 }}>
+        {navItems.map((item) => {
+          const isActive =
+            location.pathname === item.path ||
+            (item.path !== basePath && location.pathname.startsWith(item.path));
 
-      <List sx={{ px: 1, pt: 1 }}>
-        {menu.map((item) => {
-          const selected = loc.pathname === item.path;
           return (
             <ListItemButton
               key={item.path}
-              selected={selected}
               onClick={() => {
-                nav(item.path);
-                setMobileOpen(false);
+                navigate(item.path);
+                if (isMobile) setMobileOpen(false);
               }}
               sx={{
-                borderRadius: 2,
-                mb: 0.6,
-                "&.Mui-selected": { backgroundColor: "rgba(25, 118, 210, 0.12)" },
+                mb: 0.8,
+                borderRadius: 2.5,
+                position: "relative",
+                color: "common.white",
+                backgroundColor: isActive ? alpha("#60A5FA", 0.16) : "transparent",
+                border: `1px solid ${isActive ? alpha("#60A5FA", 0.22) : "transparent"}`,
+                "&:hover": {
+                  backgroundColor: alpha("#60A5FA", 0.14),
+                },
+                "&::before": isActive
+                  ? {
+                      content: '""',
+                      position: "absolute",
+                      left: 10,
+                      top: "50%",
+                      transform: "translateY(-50%)",
+                      width: 8,
+                      height: 8,
+                      borderRadius: 99,
+                      background: "#60A5FA",
+                      boxShadow: `0 0 0 4px ${alpha("#60A5FA", 0.18)}`,
+                    }
+                  : {},
               }}
             >
-              <ListItemIcon sx={{ minWidth: 40 }}>{item.icon}</ListItemIcon>
-              <ListItemText primary={item.label} />
+              <ListItemIcon sx={{ minWidth: 42, color: alpha("#fff", 0.9) }}>
+                {item.icon}
+              </ListItemIcon>
+              <ListItemText
+                primary={item.label}
+                primaryTypographyProps={{
+                  fontWeight: isActive ? 900 : 700,
+                }}
+              />
             </ListItemButton>
           );
         })}
       </List>
 
-      <Box sx={{ mt: "auto", p: 2 }}>
+      <Box sx={{ flexGrow: 1 }} />
+
+      {/* Footer card */}
+      <Box
+        sx={{
+          mt: 2,
+          p: 1.5,
+          borderRadius: 3,
+          backgroundColor: alpha("#fff", 0.06),
+          border: `1px solid ${alpha("#fff", 0.08)}`,
+        }}
+      >
+        <Stack direction="row" spacing={1.2} alignItems="center">
+          <Avatar sx={{ fontWeight: 900, bgcolor: alpha("#60A5FA", 0.22), color: "white" }}>
+            {initials}
+          </Avatar>
+          <Box sx={{ minWidth: 0 }}>
+            <Typography noWrap fontWeight={900}>
+              {user?.name || "User"}
+            </Typography>
+            <Chip
+              size="small"
+              label={role || "ROLE"}
+              sx={{
+                mt: 0.5,
+                fontWeight: 800,
+                color: "white",
+                borderColor: alpha("#fff", 0.18),
+              }}
+              variant="outlined"
+            />
+          </Box>
+        </Stack>
+
         <Button
           fullWidth
           variant="outlined"
           startIcon={<LogoutIcon />}
+          sx={{
+            mt: 1.5,
+            borderRadius: 2,
+            fontWeight: 900,
+            color: "white",
+            borderColor: alpha("#fff", 0.22),
+            "&:hover": { borderColor: alpha("#fff", 0.32), backgroundColor: alpha("#fff", 0.06) },
+          }}
           onClick={() => {
             logout();
-            nav("/login");
+            navigate("/login", { replace: true });
           }}
-          sx={{ borderRadius: 2 }}
         >
           Logout
         </Button>
@@ -125,57 +253,81 @@ export default function DashboardLayout() {
   );
 
   return (
-    <Box sx={{ display: "flex" }}>
-      <CssBaseline />
-
-      <AppBar position="fixed" elevation={0} sx={{ borderBottom: "1px solid rgba(0,0,0,0.08)" }}>
+    <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "background.default" }}>
+      {/* Top AppBar */}
+      <AppBar
+        position="fixed"
+        elevation={0}
+        sx={{
+          zIndex: theme.zIndex.drawer + 1,
+          bgcolor: alpha("#fff", 0.75),
+          backdropFilter: "blur(12px)",
+          borderBottom: `1px solid ${alpha("#000", 0.06)}`,
+          color: "text.primary",
+        }}
+      >
         <Toolbar sx={{ gap: 1 }}>
-          <IconButton
-            onClick={() => setMobileOpen(true)}
-            sx={{ display: { md: "none" } }}
-            edge="start"
-            color="inherit"
-          >
-            <MenuIcon />
-          </IconButton>
+          {isMobile && (
+            <IconButton edge="start" onClick={handleDrawerToggle} aria-label="open drawer">
+              <MenuIcon />
+            </IconButton>
+          )}
 
-          <Typography fontWeight={900}>{title}</Typography>
-
-          <Box sx={{ flexGrow: 1 }} />
-
-          <Typography variant="body2" sx={{ opacity: 0.8 }}>
-            {user?.name} • {role}
+          <Typography variant="subtitle1" fontWeight={900} sx={{ flexGrow: 1 }}>
+            {role === "OWNER" ? "Owner Panel" : role === "ADMIN" ? "Admin Panel" : "Staff Panel"}
           </Typography>
+
+          <Tooltip title="Notifications">
+            <IconButton>
+              <Badge variant="dot" color="primary">
+                <NotificationsNoneIcon />
+              </Badge>
+            </IconButton>
+          </Tooltip>
         </Toolbar>
       </AppBar>
 
-      {/* Desktop drawer */}
-      <Drawer
-        variant="permanent"
-        open
+      {/* Sidebar */}
+      <Box component="nav" sx={{ width: { md: DRAWER_WIDTH }, flexShrink: { md: 0 } }}>
+        <Drawer
+          variant="temporary"
+          open={mobileOpen}
+          onClose={handleDrawerToggle}
+          ModalProps={{ keepMounted: true }}
+          sx={{
+            display: { xs: "block", md: "none" },
+            "& .MuiDrawer-paper": { width: DRAWER_WIDTH, border: 0 },
+          }}
+        >
+          {drawer}
+        </Drawer>
+
+        <Drawer
+          variant="permanent"
+          open
+          sx={{
+            display: { xs: "none", md: "block" },
+            "& .MuiDrawer-paper": { width: DRAWER_WIDTH, border: 0 },
+          }}
+        >
+          {drawer}
+        </Drawer>
+      </Box>
+
+      {/* Content */}
+      <Box
+        component="main"
         sx={{
-          display: { xs: "none", md: "block" },
-          "& .MuiDrawer-paper": { width: drawerWidth, boxSizing: "border-box" },
+          flexGrow: 1,
+          width: { md: `calc(100% - ${DRAWER_WIDTH}px)` },
+          pt: 10,
+          px: { xs: 2, sm: 3 },
+          pb: 4,
         }}
       >
-        {drawer}
-      </Drawer>
-
-      {/* Mobile drawer */}
-      <Drawer
-        variant="temporary"
-        open={mobileOpen}
-        onClose={() => setMobileOpen(false)}
-        sx={{
-          display: { xs: "block", md: "none" },
-          "& .MuiDrawer-paper": { width: drawerWidth, boxSizing: "border-box" },
-        }}
-      >
-        {drawer}
-      </Drawer>
-
-      <Box component="main" sx={{ flexGrow: 1, p: 3, mt: 8 }}>
-        <Outlet />
+        <Box sx={{ maxWidth: 1250, mx: "auto" }}>
+          <Outlet />
+        </Box>
       </Box>
     </Box>
   );

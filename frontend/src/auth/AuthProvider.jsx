@@ -1,4 +1,11 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { loginApi, meApi } from "../api/authApi";
 
 const AuthContext = createContext(null);
@@ -44,14 +51,34 @@ export default function AuthProvider({ children }) {
     loadMe();
   }, [loadMe]);
 
-  const login = useCallback(
-    async (email, password) => {
-      const res = await loginApi({ email, password });
-      localStorage.setItem("accessToken", res.data.token);
-      await loadMe();
-    },
-    [loadMe]
-  );
+  const login = async (email, password) => {
+    const res = await loginApi({ email, password });
+
+    // ✅ backend returns "accessToken" (not "token")
+    const token = res.data?.accessToken || res.data?.token;
+
+    if (!token) {
+      throw new Error("Login response did not include accessToken");
+    }
+
+    localStorage.setItem("accessToken", token);
+
+    // (optional but nice) store basic user from login response immediately
+    if (res.data?.role) {
+      localStorage.setItem(
+        "me",
+        JSON.stringify({
+          name: res.data?.name,
+          email: res.data?.email,
+          role: res.data?.role,
+          businessId: res.data?.businessId ?? null,
+        }),
+      );
+    }
+
+    // then load full /me (id, businessId, etc)
+    await loadMe();
+  };
 
   const logout = useCallback(() => {
     localStorage.removeItem("accessToken");
@@ -68,7 +95,7 @@ export default function AuthProvider({ children }) {
       reloadMe: loadMe,
       setUser, // optional, but sometimes helpful
     }),
-    [user, loading, login, logout, loadMe]
+    [user, loading, login, logout, loadMe],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
