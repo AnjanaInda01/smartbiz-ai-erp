@@ -9,6 +9,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/v1/admin/plans")
@@ -30,6 +31,15 @@ public class SubscriptionPlanController {
     @GetMapping
     public ResponseEntity<List<SubscriptionPlan>> list() {
         return ResponseEntity.ok(planRepository.findAll());
+    }
+
+    // Public endpoint for owners to view active plans
+    @GetMapping("/active")
+    @PreAuthorize("hasAnyRole('OWNER','STAFF','ADMIN')")
+    public ResponseEntity<List<SubscriptionPlan>> listActive() {
+        return ResponseEntity.ok(planRepository.findAll().stream()
+                .filter(plan -> plan.getActive() != null && plan.getActive())
+                .collect(Collectors.toList()));
     }
 
     @GetMapping("/{id}")

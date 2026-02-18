@@ -12,6 +12,8 @@ public interface BusinessSubscriptionRepository extends JpaRepository<BusinessSu
     Optional<BusinessSubscription>
     findByBusiness_IdAndStatus(Long businessId, SubscriptionStatus status);
 
+    List<BusinessSubscription> findByBusiness_Id(Long businessId);
+
     @Query("""
             select bs
             from BusinessSubscription bs
