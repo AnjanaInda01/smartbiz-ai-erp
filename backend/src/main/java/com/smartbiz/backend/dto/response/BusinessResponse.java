@@ -15,4 +15,6 @@ public class BusinessResponse {
     private String email;
     private String phone;
     private String address;
+    private String subscriptionPlan; // FREE, PRO, or null
+    private String subscriptionStatus; // ACTIVE, EXPIRED, etc.
 }
