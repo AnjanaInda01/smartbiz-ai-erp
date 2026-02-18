@@ -4,21 +4,18 @@ import {
   getBusinessSubscriptionApi,
   subscribeBusinessApi,
   cancelSubscriptionApi,
-  getSubscriptionHistoryApi,
 } from "@/api/subscriptionApi";
 import PageHeader from "@/components/PageHeader";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Crown, Check, X, Calendar, CreditCard } from "lucide-react";
+import { Check, Sparkles, Zap, Shield, BarChart3, Users, Package, FileText, Brain, Crown } from "lucide-react";
 import ConfirmDialog from "@/components/ConfirmDialog";
 
 export default function SubscriptionPage() {
   const [plans, setPlans] = useState([]);
   const [currentSubscription, setCurrentSubscription] = useState(null);
-  const [subscriptionHistory, setSubscriptionHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
 
@@ -29,15 +26,13 @@ export default function SubscriptionPage() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [plansRes, subscriptionRes, historyRes] = await Promise.all([
+      const [plansRes, subscriptionRes] = await Promise.all([
         getSubscriptionPlansApi(),
         getBusinessSubscriptionApi().catch(() => ({ data: null })),
-        getSubscriptionHistoryApi().catch(() => ({ data: [] })),
       ]);
 
       setPlans(plansRes.data || []);
       setCurrentSubscription(subscriptionRes.data);
-      setSubscriptionHistory(historyRes.data || []);
     } catch (error) {
       toast.error("Failed to load subscription data");
     } finally {
@@ -68,202 +63,215 @@ export default function SubscriptionPage() {
   };
 
   const formatLimit = (value) => {
-    return value === -1 || value === null ? "Unlimited" : value.toLocaleString();
+    return value === -1 || value === null || value === 999999 ? "Unlimited" : value.toLocaleString();
   };
 
-  const formatDate = (dateString) => {
-    if (!dateString) return "-";
-    return new Date(dateString).toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
+  // Get Free and Pro plans
+  const freePlan = plans.find((p) => p.name?.toUpperCase() === "FREE" || p.monthlyPrice === 0);
+  const proPlan = plans.find((p) => p.name?.toUpperCase() === "PRO" || p.monthlyPrice > 0);
+
+  const isFreeCurrent = currentSubscription?.planId === freePlan?.id && currentSubscription?.status === "ACTIVE";
+  const isProCurrent = currentSubscription?.planId === proPlan?.id && currentSubscription?.status === "ACTIVE";
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    );
   }
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Subscription Management"
-        description="Manage your business subscription plan"
+        title="Subscription Plans"
+        description="Choose the perfect plan for your business"
       />
 
-      {/* Current Subscription */}
-      {currentSubscription && (
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>Current Subscription</CardTitle>
-                <CardDescription>Your active subscription plan</CardDescription>
-              </div>
-              <Badge variant={currentSubscription.status === "ACTIVE" ? "default" : "secondary"}>
-                {currentSubscription.status}
-              </Badge>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <p className="text-sm text-muted-foreground">Plan Name</p>
-                <p className="text-lg font-semibold">{currentSubscription.planName || "N/A"}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Price</p>
-                <p className="text-lg font-semibold">
-                  ${currentSubscription.price?.toFixed(2)}/{currentSubscription.durationMonths}mo
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Start Date</p>
-                <p className="text-lg font-semibold">{formatDate(currentSubscription.startDate)}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">End Date</p>
-                <p className="text-lg font-semibold">{formatDate(currentSubscription.endDate)}</p>
-              </div>
-            </div>
-            {currentSubscription.status === "ACTIVE" && (
-              <div className="mt-4">
-                <Button variant="destructive" onClick={() => setCancelDialogOpen(true)}>
-                  Cancel Subscription
-                </Button>
+      {/* Pricing Cards */}
+      <div className="grid gap-6 md:grid-cols-2 max-w-5xl mx-auto">
+        {/* Free Plan Card */}
+        {freePlan && (
+          <Card className="relative overflow-hidden border-2">
+            {isFreeCurrent && (
+              <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10">
+                <Badge className="bg-green-500 text-white px-4 py-1 rounded-full">
+                  Current Plan
+                </Badge>
               </div>
             )}
+            <CardContent className="p-8">
+              <div className="text-center mb-6">
+                <h3 className="text-3xl font-bold mb-2">{freePlan.name || "Free"}</h3>
+                <div className="mb-2">
+                  <span className="text-4xl font-bold text-green-600">Free</span>
+                </div>
+                <p className="text-sm text-muted-foreground">Perfect for getting started</p>
+              </div>
+
+              <div className="space-y-3 mb-6">
+                <div className="flex items-start gap-3">
+                  <Check className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm">Basic dashboard access</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Check className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm">Up to {formatLimit(freePlan.maxProducts)} products</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Check className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm">Up to {formatLimit(freePlan.maxUsers)} users</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Check className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm">Basic reporting</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Check className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm">Email support</span>
+                </div>
+              </div>
+
+              <Button
+                variant="outline"
+                className="w-full bg-gray-100 text-gray-600 hover:bg-gray-200 cursor-not-allowed"
+                disabled
+              >
+                {isFreeCurrent ? "Current Plan" : "Free Plan"}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Pro Plan Card */}
+        {proPlan && (
+          <Card className="relative overflow-hidden border-2 border-primary">
+            <div className="absolute top-4 right-4 z-10">
+              <Badge className="bg-purple-500 text-white px-4 py-1 rounded-full">
+                POPULAR
+              </Badge>
+            </div>
+            <CardContent className="p-8">
+              <div className="text-center mb-6">
+                <h3 className="text-3xl font-bold mb-2">{proPlan.name || "Pro"}</h3>
+                <div className="mb-2">
+                  <span className="text-4xl font-bold">${parseFloat(proPlan.monthlyPrice || 0).toFixed(2)}</span>
+                  <span className="text-muted-foreground text-lg">/month</span>
+                </div>
+                <p className="text-sm text-muted-foreground">Everything you need to grow your business</p>
+              </div>
+
+              <div className="space-y-3 mb-6">
+                <div className="flex items-start gap-3">
+                  <Check className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm">Advanced dashboard access</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Check className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm">Unlimited products</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Check className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm">Unlimited customers</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Check className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm">Advanced reporting & analytics</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Check className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm">Priority support</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Check className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm">{formatLimit(proPlan.maxAiRequestsPerMonth)} AI requests/month</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Check className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm">Custom integrations</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Check className="h-5 w-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm">Multi-user support ({formatLimit(proPlan.maxUsers)} users)</span>
+                </div>
+              </div>
+
+              {isProCurrent ? (
+                <Button
+                  variant="outline"
+                  className="w-full bg-gray-100 text-gray-600 hover:bg-gray-200 cursor-not-allowed"
+                  disabled
+                >
+                  Current Plan
+                </Button>
+              ) : (
+                <Button
+                  className="w-full bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 text-white font-semibold py-6 text-lg"
+                  onClick={() => handleSubscribe(proPlan.id)}
+                >
+                  <Sparkles className="mr-2 h-5 w-5" />
+                  Request Pro Upgrade
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      {/* Current Subscription Details */}
+      {currentSubscription && currentSubscription.status === "ACTIVE" && (
+        <Card className="max-w-5xl mx-auto">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold mb-1">Current Subscription</h3>
+                <p className="text-sm text-muted-foreground">
+                  {currentSubscription.planName} • Active until {new Date(currentSubscription.endDate).toLocaleDateString()}
+                </p>
+              </div>
+              <Button variant="destructive" onClick={() => setCancelDialogOpen(true)}>
+                Cancel Subscription
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Available Plans */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Available Plans</CardTitle>
-          <CardDescription>Choose a subscription plan that fits your business</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-3">
-            {plans
-              .filter((plan) => plan.active)
-              .map((plan) => {
-                const isCurrentPlan =
-                  currentSubscription?.planId === plan.id &&
-                  currentSubscription?.status === "ACTIVE";
-                return (
-                  <Card key={plan.id} className={isCurrentPlan ? "border-primary" : ""}>
-                    <CardHeader>
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="flex items-center gap-2">
-                          <Crown className="h-5 w-5 text-primary" />
-                          {plan.name}
-                        </CardTitle>
-                        {isCurrentPlan && (
-                          <Badge variant="default">Current</Badge>
-                        )}
-                      </div>
-                      <CardDescription>{plan.description}</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <div className="space-y-4">
-                        <div>
-                          <p className="text-3xl font-bold">${plan.price?.toFixed(2)}</p>
-                          <p className="text-sm text-muted-foreground">
-                            per {plan.durationMonths} {plan.durationMonths === 1 ? "month" : "months"}
-                          </p>
-                        </div>
-
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2">
-                            <Check className="h-4 w-4 text-primary" />
-                            <span className="text-sm">
-                              {formatLimit(plan.maxProducts)} Products
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Check className="h-4 w-4 text-primary" />
-                            <span className="text-sm">
-                              {formatLimit(plan.maxCustomers)} Customers
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Check className="h-4 w-4 text-primary" />
-                            <span className="text-sm">
-                              {formatLimit(plan.maxInvoices)} Invoices
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Check className="h-4 w-4 text-primary" />
-                            <span className="text-sm">
-                              {formatLimit(plan.maxStaff)} Staff Members
-                            </span>
-                          </div>
-                        </div>
-
-                        {!isCurrentPlan && (
-                          <Button
-                            className="w-full"
-                            onClick={() => handleSubscribe(plan.id)}
-                            disabled={!plan.active}
-                          >
-                            {currentSubscription ? "Switch Plan" : "Subscribe"}
-                          </Button>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
+      {/* Feature Comparison */}
+      <Card className="max-w-5xl mx-auto">
+        <CardContent className="p-6">
+          <h3 className="text-xl font-semibold mb-6 text-center">Feature Comparison</h3>
+          <div className="grid md:grid-cols-3 gap-6">
+            <div className="text-center">
+              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 mx-auto mb-3">
+                <BarChart3 className="h-6 w-6 text-primary" />
+              </div>
+              <h4 className="font-semibold mb-2">Analytics & Reports</h4>
+              <p className="text-sm text-muted-foreground">
+                {freePlan && "Basic reports"} {proPlan && "Advanced analytics with AI insights"}
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 mx-auto mb-3">
+                <Brain className="h-6 w-6 text-primary" />
+              </div>
+              <h4 className="font-semibold mb-2">AI Features</h4>
+              <p className="text-sm text-muted-foreground">
+                {freePlan && "Limited AI requests"} {proPlan && "Unlimited AI-powered insights"}
+              </p>
+            </div>
+            <div className="text-center">
+              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 mx-auto mb-3">
+                <Shield className="h-6 w-6 text-primary" />
+              </div>
+              <h4 className="font-semibold mb-2">Support</h4>
+              <p className="text-sm text-muted-foreground">
+                {freePlan && "Email support"} {proPlan && "Priority 24/7 support"}
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>
-
-      {/* Subscription History */}
-      {subscriptionHistory.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Subscription History</CardTitle>
-            <CardDescription>Your subscription history</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Plan</TableHead>
-                  <TableHead>Start Date</TableHead>
-                  <TableHead>End Date</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Amount</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {subscriptionHistory.map((sub) => (
-                  <TableRow key={sub.id}>
-                    <TableCell>{sub.planName}</TableCell>
-                    <TableCell>{formatDate(sub.startDate)}</TableCell>
-                    <TableCell>{formatDate(sub.endDate)}</TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          sub.status === "ACTIVE"
-                            ? "default"
-                            : sub.status === "CANCELLED"
-                            ? "destructive"
-                            : "secondary"
-                        }
-                      >
-                        {sub.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>${sub.price?.toFixed(2)}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      )}
 
       <ConfirmDialog
         open={cancelDialogOpen}

@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import ConfirmDialog from "@/components/ConfirmDialog";
@@ -99,12 +100,12 @@ export default function SubscriptionPlansPage() {
     reset({
       name: plan.name,
       description: plan.description || "",
-      price: plan.price,
-      durationMonths: plan.durationMonths,
+      price: plan.monthlyPrice || 0,
+      durationMonths: 1, // Default to 1 month
       maxProducts: plan.maxProducts ?? -1,
-      maxCustomers: plan.maxCustomers ?? -1,
-      maxInvoices: plan.maxInvoices ?? -1,
-      maxStaff: plan.maxStaff ?? -1,
+      maxCustomers: plan.maxAiRequestsPerMonth ?? 0, // Map AI requests to customers field for display
+      maxInvoices: -1, // Not in backend, default to unlimited
+      maxStaff: plan.maxUsers ?? -1,
       active: plan.active !== false,
     });
     setDialogOpen(true);
@@ -117,18 +118,29 @@ export default function SubscriptionPlansPage() {
 
   const onSubmit = async (data) => {
     try {
+      // Map frontend form data to backend entity structure
+      const planData = {
+        name: data.name,
+        monthlyPrice: parseFloat(data.price || 0),
+        maxUsers: parseInt(data.maxStaff || -1), // Using maxStaff as maxUsers
+        maxProducts: parseInt(data.maxProducts || -1),
+        maxAiRequestsPerMonth: parseInt(data.maxCustomers || 0), // Map customers to AI requests for now
+        active: data.active !== false,
+      };
+
       if (selectedPlan) {
-        await updateSubscriptionPlanApi(selectedPlan.id, data);
+        await updateSubscriptionPlanApi(selectedPlan.id, planData);
         toast.success("Subscription plan updated successfully");
       } else {
-        await createSubscriptionPlanApi(data);
+        await createSubscriptionPlanApi(planData);
         toast.success("Subscription plan created successfully");
       }
       setDialogOpen(false);
       reset();
       loadPlans();
     } catch (error) {
-      const message = error.response?.data?.message || "Operation failed";
+      console.error("Subscription plan error:", error);
+      const message = error.response?.data?.message || error.message || "Operation failed";
       toast.error(message);
     }
   };
@@ -161,14 +173,9 @@ export default function SubscriptionPlansPage() {
         ),
       },
       {
-        accessorKey: "description",
-        header: "Description",
-        cell: ({ row }) => row.original.description || "-",
-      },
-      {
-        accessorKey: "price",
+        accessorKey: "monthlyPrice",
         header: "Price",
-        cell: ({ row }) => `$${row.original.price?.toFixed(2)}/${row.original.durationMonths}mo`,
+        cell: ({ row }) => `$${parseFloat(row.original.monthlyPrice || 0).toFixed(2)}/month`,
       },
       {
         accessorKey: "maxProducts",
@@ -176,14 +183,14 @@ export default function SubscriptionPlansPage() {
         cell: ({ row }) => formatLimit(row.original.maxProducts),
       },
       {
-        accessorKey: "maxCustomers",
-        header: "Max Customers",
-        cell: ({ row }) => formatLimit(row.original.maxCustomers),
+        accessorKey: "maxUsers",
+        header: "Max Users",
+        cell: ({ row }) => formatLimit(row.original.maxUsers),
       },
       {
-        accessorKey: "maxStaff",
-        header: "Max Staff",
-        cell: ({ row }) => formatLimit(row.original.maxStaff),
+        accessorKey: "maxAiRequestsPerMonth",
+        header: "AI Requests/Month",
+        cell: ({ row }) => formatLimit(row.original.maxAiRequestsPerMonth),
       },
       {
         accessorKey: "active",
@@ -241,86 +248,178 @@ export default function SubscriptionPlansPage() {
           </DialogHeader>
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Plan Name *</Label>
-                  <Input id="name" {...register("name")} />
-                  {errors.name && (
-                    <p className="text-sm text-destructive">{errors.name.message}</p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="price">Price ($) *</Label>
-                  <Input id="price" type="number" step="0.01" {...register("price")} />
-                  {errors.price && (
-                    <p className="text-sm text-destructive">{errors.price.message}</p>
-                  )}
-                </div>
-              </div>
-
+              {/* Plan Name */}
               <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Input id="description" {...register("description")} />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="durationMonths">Duration (Months) *</Label>
-                <Input id="durationMonths" type="number" {...register("durationMonths")} />
-                {errors.durationMonths && (
-                  <p className="text-sm text-destructive">{errors.durationMonths.message}</p>
+                <Label htmlFor="name">
+                  Plan Name <span className="text-destructive">*</span>
+                </Label>
+                <Input 
+                  id="name" 
+                  placeholder="e.g., Free, Pro, Enterprise"
+                  {...register("name")} 
+                  className="w-full"
+                />
+                {errors.name && (
+                  <p className="text-sm text-destructive">{errors.name.message}</p>
                 )}
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="maxProducts">Max Products (-1 for unlimited) *</Label>
-                  <Input id="maxProducts" type="number" {...register("maxProducts")} />
-                  {errors.maxProducts && (
-                    <p className="text-sm text-destructive">{errors.maxProducts.message}</p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="maxCustomers">Max Customers (-1 for unlimited) *</Label>
-                  <Input id="maxCustomers" type="number" {...register("maxCustomers")} />
-                  {errors.maxCustomers && (
-                    <p className="text-sm text-destructive">{errors.maxCustomers.message}</p>
-                  )}
-                </div>
+              {/* Price */}
+              <div className="space-y-2">
+                <Label htmlFor="price">
+                  Price ($) <span className="text-destructive">*</span>
+                </Label>
+                <Input 
+                  id="price" 
+                  type="number" 
+                  step="0.01" 
+                  min="0"
+                  placeholder="0.00"
+                  {...register("price")} 
+                  className="w-full"
+                />
+                {errors.price && (
+                  <p className="text-sm text-destructive">{errors.price.message}</p>
+                )}
+                <p className="text-xs text-muted-foreground">Monthly subscription price</p>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="maxInvoices">Max Invoices (-1 for unlimited) *</Label>
-                  <Input id="maxInvoices" type="number" {...register("maxInvoices")} />
-                  {errors.maxInvoices && (
-                    <p className="text-sm text-destructive">{errors.maxInvoices.message}</p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="maxStaff">Max Staff (-1 for unlimited) *</Label>
-                  <Input id="maxStaff" type="number" {...register("maxStaff")} />
-                  {errors.maxStaff && (
-                    <p className="text-sm text-destructive">{errors.maxStaff.message}</p>
-                  )}
-                </div>
+              {/* Description */}
+              <div className="space-y-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  rows={3}
+                  placeholder="Describe the features and benefits of this plan..."
+                  {...register("description")}
+                />
               </div>
 
-              <div className="flex items-center space-x-2">
+              {/* Duration */}
+              <div className="space-y-2">
+                <Label htmlFor="durationMonths">
+                  Duration (Months) <span className="text-destructive">*</span>
+                </Label>
+                <Input 
+                  id="durationMonths" 
+                  type="number" 
+                  min="1"
+                  placeholder="1"
+                  {...register("durationMonths")} 
+                  className="w-full"
+                />
+                {errors.durationMonths && (
+                  <p className="text-sm text-destructive">{errors.durationMonths.message}</p>
+                )}
+                <p className="text-xs text-muted-foreground">Billing cycle duration in months</p>
+              </div>
+
+              {/* Max Products */}
+              <div className="space-y-2">
+                <Label htmlFor="maxProducts">
+                  Max Products (-1 for unlimited) <span className="text-destructive">*</span>
+                </Label>
+                <Input 
+                  id="maxProducts" 
+                  type="number" 
+                  min="-1"
+                  placeholder="-1"
+                  {...register("maxProducts")} 
+                  className="w-full"
+                />
+                {errors.maxProducts && (
+                  <p className="text-sm text-destructive">{errors.maxProducts.message}</p>
+                )}
+                <p className="text-xs text-muted-foreground">Maximum number of products allowed. Use -1 for unlimited.</p>
+              </div>
+
+              {/* Max Customers */}
+              <div className="space-y-2">
+                <Label htmlFor="maxCustomers">
+                  Max Customers (-1 for unlimited) <span className="text-destructive">*</span>
+                </Label>
+                <Input 
+                  id="maxCustomers" 
+                  type="number" 
+                  min="-1"
+                  placeholder="-1"
+                  {...register("maxCustomers")} 
+                  className="w-full"
+                />
+                {errors.maxCustomers && (
+                  <p className="text-sm text-destructive">{errors.maxCustomers.message}</p>
+                )}
+                <p className="text-xs text-muted-foreground">Maximum number of customers allowed. Use -1 for unlimited.</p>
+              </div>
+
+              {/* Max Invoices */}
+              <div className="space-y-2">
+                <Label htmlFor="maxInvoices">
+                  Max Invoices (-1 for unlimited) <span className="text-destructive">*</span>
+                </Label>
+                <Input 
+                  id="maxInvoices" 
+                  type="number" 
+                  min="-1"
+                  placeholder="-1"
+                  {...register("maxInvoices")} 
+                  className="w-full"
+                />
+                {errors.maxInvoices && (
+                  <p className="text-sm text-destructive">{errors.maxInvoices.message}</p>
+                )}
+                <p className="text-xs text-muted-foreground">Maximum number of invoices allowed. Use -1 for unlimited.</p>
+              </div>
+
+              {/* Max Staff */}
+              <div className="space-y-2">
+                <Label htmlFor="maxStaff">
+                  Max Staff (-1 for unlimited) <span className="text-destructive">*</span>
+                </Label>
+                <Input 
+                  id="maxStaff" 
+                  type="number" 
+                  min="-1"
+                  placeholder="-1"
+                  {...register("maxStaff")} 
+                  className="w-full"
+                />
+                {errors.maxStaff && (
+                  <p className="text-sm text-destructive">{errors.maxStaff.message}</p>
+                )}
+                <p className="text-xs text-muted-foreground">Maximum number of staff members allowed. Use -1 for unlimited.</p>
+              </div>
+
+              {/* Active Checkbox */}
+              <div className="flex items-center space-x-2 pt-2">
                 <Checkbox
                   id="active"
                   checked={activeValue}
                   onCheckedChange={(checked) => setValue("active", checked === true)}
                 />
-                <Label htmlFor="active" className="cursor-pointer">
+                <Label htmlFor="active" className="cursor-pointer font-normal">
                   Active
                 </Label>
+                <p className="text-xs text-muted-foreground ml-2">
+                  Active plans are available for subscription
+                </p>
               </div>
             </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
+            <DialogFooter className="gap-2">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setDialogOpen(false)}
+                className="min-w-[100px]"
+              >
                 Cancel
               </Button>
-              <Button type="submit">Save</Button>
+              <Button 
+                type="submit"
+                className="min-w-[100px]"
+              >
+                {selectedPlan ? "Update" : "Save"}
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>

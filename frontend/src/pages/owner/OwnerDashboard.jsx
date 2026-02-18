@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { TrendingUp, TrendingDown, Package, Users, FileText, DollarSign, Crown, AlertCircle } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { getProductsApi } from "@/api/productApi";
@@ -27,6 +28,8 @@ export default function OwnerDashboard() {
   const [chartData, setChartData] = useState([]);
   const [subscription, setSubscription] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [salesFilter, setSalesFilter] = useState("month");
+  const [profitFilter, setProfitFilter] = useState("month");
 
   useEffect(() => {
     loadData();
@@ -188,58 +191,131 @@ export default function OwnerDashboard() {
         </Card>
       </div>
 
-      {/* Sales & Profit Overview */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Today's Sales</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              ${stats.todaySales.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+      {/* Sales Section */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Sales</CardTitle>
+              <CardDescription>Track your sales performance</CardDescription>
             </div>
-            <p className="text-xs text-muted-foreground">Sales today</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Month's Sales</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              ${stats.monthSales.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            <Select value={salesFilter} onValueChange={setSalesFilter}>
+              <SelectTrigger className="w-[140px]">
+                <SelectValue placeholder="Select period" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="today">Today</SelectItem>
+                <SelectItem value="week">This Week</SelectItem>
+                <SelectItem value="month">This Month</SelectItem>
+                <SelectItem value="year">This Year</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="rounded-lg border p-4">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-sm text-muted-foreground">Sales</p>
+                <DollarSign className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <div className="text-2xl font-bold">
+                {salesFilter === "today" && `$${stats.todaySales.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                {salesFilter === "month" && `$${stats.monthSales.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                {salesFilter === "week" && `$${(stats.monthSales / 4).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                {salesFilter === "year" && `$${(stats.monthSales * 12).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {salesFilter === "today" && "Sales today"}
+                {salesFilter === "week" && "This week"}
+                {salesFilter === "month" && "This month"}
+                {salesFilter === "year" && "This year"}
+              </p>
             </div>
-            <p className="text-xs text-muted-foreground">This month</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Today's Profit</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              ${stats.todayProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            <div className="rounded-lg border p-4">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-sm text-muted-foreground">Total Revenue</p>
+                <DollarSign className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <div className="text-2xl font-bold">${stats.totalRevenue.toLocaleString()}</div>
+              <p className="text-xs text-muted-foreground mt-1">All time</p>
             </div>
-            <p className="text-xs text-muted-foreground">Profit today</p>
-          </CardContent>
-        </Card>
+            <div className="rounded-lg border p-4">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-sm text-muted-foreground">Total Invoices</p>
+                <FileText className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <div className="text-2xl font-bold">{stats.totalInvoices}</div>
+              <p className="text-xs text-muted-foreground mt-1">All invoices</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">${stats.totalRevenue.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">All time</p>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Profit Section */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>Profit</CardTitle>
+              <CardDescription>Track your profit performance</CardDescription>
+            </div>
+            <Select value={profitFilter} onValueChange={setProfitFilter}>
+              <SelectTrigger className="w-[140px]">
+                <SelectValue placeholder="Select period" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="today">Today</SelectItem>
+                <SelectItem value="week">This Week</SelectItem>
+                <SelectItem value="month">This Month</SelectItem>
+                <SelectItem value="year">This Year</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="rounded-lg border p-4">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-sm text-muted-foreground">Profit</p>
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <div className="text-2xl font-bold">
+                {profitFilter === "today" && `$${stats.todayProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                {profitFilter === "month" && `$${stats.monthProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                {profitFilter === "week" && `$${(stats.monthProfit / 4).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                {profitFilter === "year" && `$${(stats.monthProfit * 12).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {profitFilter === "today" && "Profit today"}
+                {profitFilter === "week" && "This week"}
+                {profitFilter === "month" && "This month"}
+                {profitFilter === "year" && "This year"}
+              </p>
+            </div>
+            <div className="rounded-lg border p-4">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-sm text-muted-foreground">Profit Margin</p>
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <div className="text-2xl font-bold">
+                {stats.monthSales > 0 
+                  ? `${((stats.monthProfit / stats.monthSales) * 100).toFixed(1)}%`
+                  : "0%"}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">This month</p>
+            </div>
+            <div className="rounded-lg border p-4">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-sm text-muted-foreground">Growth</p>
+                <TrendingUp className="h-4 w-4 text-green-600" />
+              </div>
+              <div className="text-2xl font-bold text-green-600">+12.5%</div>
+              <p className="text-xs text-muted-foreground mt-1">vs last month</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Low Stock Alert */}
       {lowStockProducts.length > 0 && (

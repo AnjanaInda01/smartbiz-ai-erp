@@ -12,6 +12,7 @@ import OwnerSuppliersPage from "./pages/owner/SuppliersPage";
 import OwnerPurchasesPage from "./pages/owner/PurchasesPage";
 import OwnerReportsPage from "./pages/owner/ReportsPage";
 import OwnerAiInsightsPage from "./pages/owner/AiInsightsPage";
+import OwnerSalesPage from "./pages/owner/SalesPage";
 import StaffProductsPage from "./pages/staff/ProductsPage";
 import StaffInvoicesPage from "./pages/staff/InvoicesPage";
 import StaffInvoiceDetailPage from "./pages/staff/InvoiceDetailPage";
@@ -47,6 +48,16 @@ export default function App() {
           <ProtectedRoute>
             <DashboardLayout>
               <OwnerDashboard />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/owner/sales"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <OwnerSalesPage />
             </DashboardLayout>
           </ProtectedRoute>
         }

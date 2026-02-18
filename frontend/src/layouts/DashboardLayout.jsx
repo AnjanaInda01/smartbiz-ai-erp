@@ -18,6 +18,7 @@ import {
   BarChart3,
   Truck,
   ShoppingCart,
+  TrendingUp,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -40,6 +41,7 @@ import { normalizeRole } from "@/auth/roleRedirect";
 const sidebarItems = {
   owner: [
     { icon: LayoutDashboard, label: "Dashboard", path: "/owner" },
+    { icon: TrendingUp, label: "Sales", path: "/owner/sales" },
     { icon: Package, label: "Products", path: "/owner/products" },
     { icon: Users, label: "Customers", path: "/owner/customers" },
     { icon: Truck, label: "Suppliers", path: "/owner/suppliers" },

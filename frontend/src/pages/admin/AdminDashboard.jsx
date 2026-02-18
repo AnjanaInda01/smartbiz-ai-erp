@@ -18,42 +18,42 @@ export default function AdminDashboard() {
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Button asChild variant="outline" className="h-auto flex-col items-start p-4">
-              <Link to="/admin/businesses">
+            <Link to="/admin/businesses" className="block">
+              <Button variant="outline" className="h-auto w-full flex-col items-start p-4 hover:bg-accent transition-colors">
                 <Building2 className="mb-2 h-6 w-6" />
                 <div className="text-left">
                   <div className="font-semibold">Registered Businesses</div>
                   <div className="text-sm text-muted-foreground">View and manage businesses</div>
                 </div>
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="h-auto flex-col items-start p-4">
-              <Link to="/admin/ai-usage">
+              </Button>
+            </Link>
+            <Link to="/admin/ai-usage" className="block">
+              <Button variant="outline" className="h-auto w-full flex-col items-start p-4 hover:bg-accent transition-colors">
                 <Brain className="mb-2 h-6 w-6" />
                 <div className="text-left">
                   <div className="font-semibold">AI Usage & Logs</div>
                   <div className="text-sm text-muted-foreground">Review AI usage across businesses</div>
                 </div>
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="h-auto flex-col items-start p-4">
-              <Link to="/admin/statistics">
+              </Button>
+            </Link>
+            <Link to="/admin/statistics" className="block">
+              <Button variant="outline" className="h-auto w-full flex-col items-start p-4 hover:bg-accent transition-colors">
                 <BarChart3 className="mb-2 h-6 w-6" />
                 <div className="text-left">
                   <div className="font-semibold">System Statistics</div>
                   <div className="text-sm text-muted-foreground">View system-wide metrics</div>
                 </div>
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="h-auto flex-col items-start p-4">
-              <Link to="/admin/subscription-plans">
+              </Button>
+            </Link>
+            <Link to="/admin/subscription-plans" className="block">
+              <Button variant="outline" className="h-auto w-full flex-col items-start p-4 hover:bg-accent transition-colors">
                 <Crown className="mb-2 h-6 w-6" />
                 <div className="text-left">
                   <div className="font-semibold">Subscription Plans</div>
                   <div className="text-sm text-muted-foreground">Manage subscription plans</div>
                 </div>
-              </Link>
-            </Button>
+              </Button>
+            </Link>
           </div>
         </CardContent>
       </Card>

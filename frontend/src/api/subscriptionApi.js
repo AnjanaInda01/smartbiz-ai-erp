@@ -1,10 +1,10 @@
 import api from "./http";
 
-export const getSubscriptionPlansApi = () => api.get("/api/v1/subscription-plans");
-export const getSubscriptionPlanApi = (id) => api.get(`/api/v1/subscription-plans/${id}`);
-export const createSubscriptionPlanApi = (data) => api.post("/api/v1/subscription-plans", data);
-export const updateSubscriptionPlanApi = (id, data) => api.put(`/api/v1/subscription-plans/${id}`, data);
-export const deleteSubscriptionPlanApi = (id) => api.delete(`/api/v1/subscription-plans/${id}`);
+export const getSubscriptionPlansApi = () => api.get("/api/v1/admin/plans");
+export const getSubscriptionPlanApi = (id) => api.get(`/api/v1/admin/plans/${id}`);
+export const createSubscriptionPlanApi = (data) => api.post("/api/v1/admin/plans", data);
+export const updateSubscriptionPlanApi = (id, data) => api.put(`/api/v1/admin/plans/${id}`, data);
+export const deleteSubscriptionPlanApi = (id) => api.delete(`/api/v1/admin/plans/${id}`);
 
 // Business subscription endpoints
 export const getBusinessSubscriptionApi = () => api.get("/api/v1/business-subscriptions/current");
