@@ -1,17 +1,41 @@
 import { useState, useEffect, useMemo } from "react";
-import { getBusinessesApi } from "@/api/businessApi";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { getBusinessesApi, createBusinessApi } from "@/api/businessApi";
 import PageHeader from "@/components/PageHeader";
 import DataTable from "@/components/DataTable";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Building2, Mail, Phone, MapPin } from "lucide-react";
+import { Building2, Mail, Phone, MapPin, Plus } from "lucide-react";
+
+const businessSchema = z.object({
+  name: z.string().min(1, "Business name is required"),
+  email: z.string().email("Invalid email address"),
+  phone: z.string().optional(),
+  address: z.string().optional(),
+});
 
 export default function BusinessesPage() {
   const [businesses, setBusinesses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const [stats, setStats] = useState({
     total: 0,
+  });
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(businessSchema),
   });
 
   useEffect(() => {
@@ -29,6 +53,24 @@ export default function BusinessesPage() {
       toast.error("Failed to load businesses");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCreate = () => {
+    reset();
+    setDialogOpen(true);
+  };
+
+  const onSubmit = async (data) => {
+    try {
+      await createBusinessApi(data);
+      toast.success("Business created successfully");
+      setDialogOpen(false);
+      reset();
+      loadBusinesses();
+    } catch (error) {
+      const message = error.response?.data?.message || "Failed to create business";
+      toast.error(message);
     }
   };
 
@@ -87,6 +129,12 @@ export default function BusinessesPage() {
       <PageHeader
         title="Registered Businesses"
         description="View and manage all registered businesses in the system"
+        action={
+          <Button onClick={handleCreate}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Business
+          </Button>
+        }
       />
 
       {/* Stats Card */}
@@ -128,6 +176,56 @@ export default function BusinessesPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Create Business Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create New Business</DialogTitle>
+            <DialogDescription>
+              Add a new business to the system
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <div className="grid gap-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Business Name *</Label>
+                <Input id="name" {...register("name")} />
+                {errors.name && (
+                  <p className="text-sm text-destructive">{errors.name.message}</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email *</Label>
+                <Input id="email" type="email" {...register("email")} />
+                {errors.email && (
+                  <p className="text-sm text-destructive">{errors.email.message}</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone</Label>
+                <Input id="phone" {...register("phone")} />
+                {errors.phone && (
+                  <p className="text-sm text-destructive">{errors.phone.message}</p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="address">Address</Label>
+                <Input id="address" {...register("address")} />
+                {errors.address && (
+                  <p className="text-sm text-destructive">{errors.address.message}</p>
+                )}
+              </div>
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit">Create Business</Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

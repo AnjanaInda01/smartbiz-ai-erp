@@ -14,6 +14,10 @@ import {
   User,
   Crown,
   Building2,
+  Brain,
+  BarChart3,
+  Truck,
+  ShoppingCart,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -38,7 +42,11 @@ const sidebarItems = {
     { icon: LayoutDashboard, label: "Dashboard", path: "/owner" },
     { icon: Package, label: "Products", path: "/owner/products" },
     { icon: Users, label: "Customers", path: "/owner/customers" },
+    { icon: Truck, label: "Suppliers", path: "/owner/suppliers" },
     { icon: FileText, label: "Invoices", path: "/owner/invoices" },
+    { icon: ShoppingCart, label: "Purchases", path: "/owner/purchases" },
+    { icon: BarChart3, label: "Reports", path: "/owner/reports" },
+    { icon: Brain, label: "AI Insights", path: "/owner/ai-insights" },
     { icon: Crown, label: "Subscription", path: "/owner/subscription" },
   ],
   staff: [
@@ -49,6 +57,8 @@ const sidebarItems = {
   admin: [
     { icon: LayoutDashboard, label: "Dashboard", path: "/admin" },
     { icon: Building2, label: "Businesses", path: "/admin/businesses" },
+    { icon: Brain, label: "AI Usage & Logs", path: "/admin/ai-usage" },
+    { icon: BarChart3, label: "System Statistics", path: "/admin/statistics" },
     { icon: Crown, label: "Subscription Plans", path: "/admin/subscription-plans" },
   ],
 };

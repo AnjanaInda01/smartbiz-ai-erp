@@ -8,11 +8,17 @@ import OwnerCustomersPage from "./pages/owner/CustomersPage";
 import OwnerInvoicesPage from "./pages/owner/InvoicesPage";
 import OwnerInvoiceDetailPage from "./pages/owner/InvoiceDetailPage";
 import OwnerSubscriptionPage from "./pages/owner/SubscriptionPage";
+import OwnerSuppliersPage from "./pages/owner/SuppliersPage";
+import OwnerPurchasesPage from "./pages/owner/PurchasesPage";
+import OwnerReportsPage from "./pages/owner/ReportsPage";
+import OwnerAiInsightsPage from "./pages/owner/AiInsightsPage";
 import StaffProductsPage from "./pages/staff/ProductsPage";
 import StaffInvoicesPage from "./pages/staff/InvoicesPage";
 import StaffInvoiceDetailPage from "./pages/staff/InvoiceDetailPage";
 import AdminSubscriptionPlansPage from "./pages/admin/SubscriptionPlansPage";
 import AdminBusinessesPage from "./pages/admin/BusinessesPage";
+import AdminAiUsagePage from "./pages/admin/AiUsagePage";
+import AdminSystemStatisticsPage from "./pages/admin/SystemStatisticsPage";
 import ProtectedRoute from "./auth/ProtectedRoute";
 import { useAuth } from "./auth/AuthProvider";
 import { roleHome } from "./auth/roleRedirect";
@@ -95,6 +101,46 @@ export default function App() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/owner/suppliers"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <OwnerSuppliersPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/owner/purchases"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <OwnerPurchasesPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/owner/reports"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <OwnerReportsPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/owner/ai-insights"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <OwnerAiInsightsPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
 
       {/* STAFF area */}
       <Route
@@ -155,6 +201,26 @@ export default function App() {
           <ProtectedRoute>
             <DashboardLayout>
               <AdminBusinessesPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/ai-usage"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <AdminAiUsagePage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/statistics"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <AdminSystemStatisticsPage />
             </DashboardLayout>
           </ProtectedRoute>
         }

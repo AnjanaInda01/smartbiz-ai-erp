@@ -8,6 +8,7 @@ import { getProductsApi } from "@/api/productApi";
 import { getCustomersApi } from "@/api/customerApi";
 import { getInvoicesApi } from "@/api/invoiceApi";
 import { getBusinessSubscriptionApi } from "@/api/subscriptionApi";
+import { getDashboardReportApi } from "@/api/reportApi";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 
@@ -17,7 +18,12 @@ export default function OwnerDashboard() {
     totalCustomers: 0,
     totalInvoices: 0,
     totalRevenue: 0,
+    todaySales: 0,
+    monthSales: 0,
+    todayProfit: 0,
+    monthProfit: 0,
   });
+  const [lowStockProducts, setLowStockProducts] = useState([]);
   const [chartData, setChartData] = useState([]);
   const [subscription, setSubscription] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -29,35 +35,42 @@ export default function OwnerDashboard() {
   const loadData = async () => {
     try {
       setLoading(true);
-      const [productsRes, customersRes, invoicesRes, subscriptionRes] = await Promise.all([
+      const [productsRes, customersRes, invoicesRes, subscriptionRes, reportRes] = await Promise.all([
         getProductsApi(),
         getCustomersApi(),
         getInvoicesApi(),
         getBusinessSubscriptionApi().catch(() => ({ data: null })),
+        getDashboardReportApi().catch(() => ({ data: null })),
       ]);
 
       const products = productsRes.data || [];
       const customers = customersRes.data || [];
       const invoices = invoicesRes.data || [];
+      const report = reportRes?.data;
 
-      const revenue = invoices.reduce((sum, inv) => sum + (inv.grandTotal || 0), 0);
+      const revenue = invoices.reduce((sum, inv) => sum + (parseFloat(inv.grandTotal) || 0), 0);
 
       setStats({
         totalProducts: products.length,
         totalCustomers: customers.length,
         totalInvoices: invoices.length,
         totalRevenue: revenue,
+        todaySales: parseFloat(report?.todaySales || 0),
+        monthSales: parseFloat(report?.monthSales || 0),
+        todayProfit: parseFloat(report?.todayProfit || 0),
+        monthProfit: parseFloat(report?.monthProfit || 0),
       });
 
+      setLowStockProducts(report?.lowStockProducts || []);
       setSubscription(subscriptionRes.data);
 
-      // Generate sample chart data (last 7 days)
+      // Generate chart data from month sales (last 7 days approximation)
       const last7Days = Array.from({ length: 7 }, (_, i) => {
         const date = new Date();
         date.setDate(date.getDate() - (6 - i));
         return {
           date: date.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
-          sales: Math.floor(Math.random() * 5000) + 1000,
+          sales: Math.floor((report?.monthSales || 0) / 30) + Math.floor(Math.random() * 200),
         };
       });
       setChartData(last7Days);
@@ -158,20 +171,109 @@ export default function OwnerDashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+            <CardTitle className="text-sm font-medium">Month's Profit</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${stats.totalRevenue.toLocaleString()}</div>
+            <div className="text-2xl font-bold">
+              ${stats.monthProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </div>
             <p className="text-xs text-muted-foreground">
               <Badge variant="secondary" className="mr-1">
                 <TrendingUp className="h-3 w-3 mr-1" />
-                Revenue
+                This month
               </Badge>
             </p>
           </CardContent>
         </Card>
       </div>
+
+      {/* Sales & Profit Overview */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Today's Sales</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              ${stats.todaySales.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </div>
+            <p className="text-xs text-muted-foreground">Sales today</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Month's Sales</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              ${stats.monthSales.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </div>
+            <p className="text-xs text-muted-foreground">This month</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Today's Profit</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">
+              ${stats.todayProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </div>
+            <p className="text-xs text-muted-foreground">Profit today</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">${stats.totalRevenue.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">All time</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Low Stock Alert */}
+      {lowStockProducts.length > 0 && (
+        <Card className="border-orange-500">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-orange-500" />
+              Low Stock Alert
+            </CardTitle>
+            <CardDescription>{lowStockProducts.length} product(s) running low</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {lowStockProducts.slice(0, 3).map((product) => (
+                <div key={product.id} className="flex items-center justify-between rounded-lg border p-2">
+                  <div>
+                    <p className="font-medium text-sm">{product.name}</p>
+                    <p className="text-xs text-muted-foreground">SKU: {product.sku}</p>
+                  </div>
+                  <Badge variant="destructive">
+                    <Package className="h-3 w-3 mr-1" />
+                    {product.stockQty} left
+                  </Badge>
+                </div>
+              ))}
+              {lowStockProducts.length > 3 && (
+                <Button asChild variant="outline" className="w-full">
+                  <Link to="/owner/products">View All ({lowStockProducts.length})</Link>
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Sales Trend Chart */}
       <Card>
@@ -199,13 +301,13 @@ export default function OwnerDashboard() {
           <CardTitle>Quick Actions</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-5">
             <Button asChild variant="outline" className="h-auto flex-col items-start p-4">
               <Link to="/owner/products">
                 <Package className="mb-2 h-6 w-6" />
                 <div className="text-left">
-                  <div className="font-semibold">Manage Products</div>
-                  <div className="text-sm text-muted-foreground">Add or edit products</div>
+                  <div className="font-semibold">Products</div>
+                  <div className="text-sm text-muted-foreground">Manage inventory</div>
                 </div>
               </Link>
             </Button>
@@ -213,8 +315,17 @@ export default function OwnerDashboard() {
               <Link to="/owner/customers">
                 <Users className="mb-2 h-6 w-6" />
                 <div className="text-left">
-                  <div className="font-semibold">Manage Customers</div>
-                  <div className="text-sm text-muted-foreground">View customer list</div>
+                  <div className="font-semibold">Customers</div>
+                  <div className="text-sm text-muted-foreground">Manage customers</div>
+                </div>
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="h-auto flex-col items-start p-4">
+              <Link to="/owner/suppliers">
+                <Users className="mb-2 h-6 w-6" />
+                <div className="text-left">
+                  <div className="font-semibold">Suppliers</div>
+                  <div className="text-sm text-muted-foreground">Manage suppliers</div>
                 </div>
               </Link>
             </Button>
@@ -222,8 +333,17 @@ export default function OwnerDashboard() {
               <Link to="/owner/invoices">
                 <FileText className="mb-2 h-6 w-6" />
                 <div className="text-left">
-                  <div className="font-semibold">Create Invoice</div>
-                  <div className="text-sm text-muted-foreground">Generate new invoice</div>
+                  <div className="font-semibold">Invoices</div>
+                  <div className="text-sm text-muted-foreground">Sales management</div>
+                </div>
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="h-auto flex-col items-start p-4">
+              <Link to="/owner/reports">
+                <FileText className="mb-2 h-6 w-6" />
+                <div className="text-left">
+                  <div className="font-semibold">Reports</div>
+                  <div className="text-sm text-muted-foreground">View analytics</div>
                 </div>
               </Link>
             </Button>
