@@ -172,12 +172,12 @@ export default function CustomersPage() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <PageHeader
         title="Customers"
         description="Manage your customers"
         action={
-          <Button onClick={handleCreate}>
+          <Button onClick={handleCreate} className="animate-scale-in shadow-md hover:shadow-lg">
             <Plus className="mr-2 h-4 w-4" />
             Add Customer
           </Button>
@@ -185,9 +185,13 @@ export default function CustomersPage() {
       />
 
       {loading ? (
-        <div>Loading...</div>
+        <div className="flex items-center justify-center py-12 animate-fade-in">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        </div>
       ) : (
-        <DataTable columns={columns} data={customers} searchKey="name" />
+        <div className="animate-slide-up">
+          <DataTable columns={columns} data={customers} searchKey="name" />
+        </div>
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

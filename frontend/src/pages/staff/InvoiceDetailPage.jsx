@@ -45,38 +45,46 @@ export default function InvoiceDetailPage() {
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <div className="flex items-center justify-center py-12 animate-fade-in">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    );
   }
 
   if (!invoice) {
-    return <div>Invoice not found</div>;
+    return (
+      <div className="py-8 text-center text-muted-foreground animate-fade-in">
+        <p>Invoice not found</p>
+      </div>
+    );
   }
 
   const canConfirm = invoice.status === "DRAFT";
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6 animate-fade-in">
+      <div className="flex items-center justify-between animate-slide-down">
         <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={() => navigate(-1)}>
+          <Button variant="ghost" onClick={() => navigate(-1)} className="transition-premium hover:scale-105">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back
           </Button>
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Invoice #{invoice.invoiceNo}</h1>
-            <p className="text-muted-foreground">Invoice details</p>
+            <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">Invoice #{invoice.invoiceNo}</h1>
+            <p className="text-lg text-muted-foreground mt-2">Invoice details</p>
           </div>
         </div>
         {canConfirm && (
-          <Button onClick={() => setConfirmDialogOpen(true)}>
+          <Button onClick={() => setConfirmDialogOpen(true)} className="animate-scale-in shadow-md hover:shadow-lg">
             <CheckCircle className="mr-2 h-4 w-4" />
             Confirm Invoice
           </Button>
         )}
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
+      <div className="grid gap-6 md:grid-cols-2 animate-fade-in">
+        <Card className="animate-slide-up hover:shadow-xl transition-premium shadow-premium">
           <CardHeader>
             <CardTitle>Invoice Information</CardTitle>
           </CardHeader>

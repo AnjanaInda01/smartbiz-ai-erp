@@ -160,21 +160,21 @@ export default function SuppliersPage() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <PageHeader
         title="Suppliers"
         description="Manage your suppliers"
         action={
-          <Button onClick={handleCreate}>
+          <Button onClick={handleCreate} className="animate-scale-in shadow-md hover:shadow-lg">
             <Plus className="mr-2 h-4 w-4" />
             Add Supplier
           </Button>
         }
       />
 
-      <div className="rounded-lg border">
+      <div className="rounded-lg border shadow-premium animate-slide-up">
         {loading ? (
-          <div className="flex items-center justify-center py-8">
+          <div className="flex items-center justify-center py-12 animate-fade-in">
             <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
           </div>
         ) : (

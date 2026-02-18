@@ -103,25 +103,25 @@ export default function SystemStatisticsPage() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <PageHeader
         title="System Statistics"
         description="View system-wide statistics and metrics"
       />
 
       {/* Statistics Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 animate-fade-in">
         {statCards.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <Card key={index}>
+            <Card key={index} className="animate-slide-up hover:shadow-xl transition-premium bg-gradient-to-br from-primary/5 to-transparent" style={{ animationDelay: `${index * 50}ms` }}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">{stat.title}</CardTitle>
-                <Icon className={`h-5 w-5 ${stat.color}`} />
+                <CardTitle className="text-base font-semibold">{stat.title}</CardTitle>
+                <Icon className={`h-5 w-5 text-primary`} />
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold">{stat.value.toLocaleString()}</div>
-                <p className="text-xs text-muted-foreground mt-1">{stat.description}</p>
+                <div className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">{stat.value.toLocaleString()}</div>
+                <p className="text-sm text-muted-foreground mt-1">{stat.description}</p>
               </CardContent>
             </Card>
           );
@@ -129,7 +129,7 @@ export default function SystemStatisticsPage() {
       </div>
 
       {/* Summary Card */}
-      <Card>
+      <Card className="animate-slide-up shadow-premium">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <TrendingUp className="h-5 w-5" />

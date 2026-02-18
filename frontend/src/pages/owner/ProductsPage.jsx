@@ -181,12 +181,12 @@ export default function ProductsPage() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <PageHeader
         title="Products"
         description="Manage your product catalog"
         action={
-          <Button onClick={handleCreate}>
+          <Button onClick={handleCreate} className="animate-scale-in shadow-md hover:shadow-lg">
             <Plus className="mr-2 h-4 w-4" />
             Add Product
           </Button>
@@ -194,21 +194,25 @@ export default function ProductsPage() {
       />
 
       {loading ? (
-        <div>Loading...</div>
+        <div className="flex items-center justify-center py-12 animate-fade-in">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        </div>
       ) : (
-        <DataTable columns={columns} data={products} searchKey="name" />
+        <div className="animate-slide-up">
+          <DataTable columns={columns} data={products} searchKey="name" />
+        </div>
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
+        <DialogContent className="animate-scale-in">
           <DialogHeader>
             <DialogTitle>{selectedProduct ? "Edit Product" : "Create Product"}</DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-base">
               {selectedProduct ? "Update product information" : "Add a new product to your catalog"}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit(onSubmit)}>
-            <div className="grid gap-4 py-4">
+            <div className="grid gap-4 py-4 animate-fade-in">
               <div className="space-y-2">
                 <Label htmlFor="name">Name *</Label>
                 <Input id="name" {...register("name")} />

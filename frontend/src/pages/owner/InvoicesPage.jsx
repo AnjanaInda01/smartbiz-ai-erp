@@ -193,12 +193,12 @@ export default function InvoicesPage() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <PageHeader
         title="Invoices"
         description="Manage invoices"
         action={
-          <Button onClick={handleCreate}>
+          <Button onClick={handleCreate} className="animate-scale-in shadow-md hover:shadow-lg">
             <Plus className="mr-2 h-4 w-4" />
             Create Invoice
           </Button>
@@ -206,9 +206,13 @@ export default function InvoicesPage() {
       />
 
       {loading ? (
-        <div>Loading...</div>
+        <div className="flex items-center justify-center py-12 animate-fade-in">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        </div>
       ) : (
-        <DataTable columns={columns} data={invoices} searchKey="invoiceNo" />
+        <div className="animate-slide-up">
+          <DataTable columns={columns} data={invoices} searchKey="invoiceNo" />
+        </div>
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen} className="max-w-4xl">

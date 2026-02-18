@@ -107,7 +107,7 @@ export default function CreatePurchasePage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <PageHeader
         title="Create Purchase"
         description="Record a purchase from supplier to update inventory and cost prices"
@@ -116,7 +116,7 @@ export default function CreatePurchasePage() {
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className="grid gap-6">
           {/* Supplier and Date */}
-          <Card>
+          <Card className="animate-slide-up">
             <CardHeader>
               <CardTitle>Purchase Details</CardTitle>
               <CardDescription>Select supplier and purchase date</CardDescription>
@@ -160,7 +160,7 @@ export default function CreatePurchasePage() {
           </Card>
 
           {/* Purchase Items */}
-          <Card>
+          <Card className="animate-slide-up" style={{ animationDelay: "100ms" }}>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
@@ -250,7 +250,7 @@ export default function CreatePurchasePage() {
           </Card>
 
           {/* Total */}
-          <Card>
+          <Card className="animate-slide-up shadow-premium bg-gradient-to-br from-primary/5 to-transparent" style={{ animationDelay: "200ms" }}>
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <span className="text-lg font-semibold">Total Cost:</span>

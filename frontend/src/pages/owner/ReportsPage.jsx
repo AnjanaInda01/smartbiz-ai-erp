@@ -53,99 +53,99 @@ export default function ReportsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <PageHeader
         title="Sales Reports & Summaries"
         description="View your business performance and analytics"
       />
 
       {/* Sales Overview */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 animate-fade-in">
+        <Card className="animate-slide-up hover:shadow-xl transition-premium bg-gradient-to-br from-primary/5 to-transparent">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Today's Sales</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-base font-semibold">Today's Sales</CardTitle>
+            <DollarSign className="h-5 w-5 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
               ${parseFloat(report.todaySales || 0).toLocaleString(undefined, {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
               })}
             </div>
-            <p className="text-xs text-muted-foreground">Sales today</p>
+            <p className="text-sm text-muted-foreground mt-1">Sales today</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="animate-slide-up hover:shadow-xl transition-premium bg-gradient-to-br from-primary/5 to-transparent" style={{ animationDelay: "100ms" }}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Month's Sales</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-base font-semibold">Month's Sales</CardTitle>
+            <Calendar className="h-5 w-5 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
               ${parseFloat(report.monthSales || 0).toLocaleString(undefined, {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
               })}
             </div>
-            <p className="text-xs text-muted-foreground">This month</p>
+            <p className="text-sm text-muted-foreground mt-1">This month</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="animate-slide-up hover:shadow-xl transition-premium bg-gradient-to-br from-primary/5 to-transparent" style={{ animationDelay: "200ms" }}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Today's Profit</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-base font-semibold">Today's Profit</CardTitle>
+            <TrendingUp className="h-5 w-5 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
               ${parseFloat(report.todayProfit || 0).toLocaleString(undefined, {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
               })}
             </div>
-            <p className="text-xs text-muted-foreground">Profit today</p>
+            <p className="text-sm text-muted-foreground mt-1">Profit today</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="animate-slide-up hover:shadow-xl transition-premium bg-gradient-to-br from-primary/5 to-transparent" style={{ animationDelay: "300ms" }}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Month's Profit</CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-base font-semibold">Month's Profit</CardTitle>
+            <BarChart3 className="h-5 w-5 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
               ${parseFloat(report.monthProfit || 0).toLocaleString(undefined, {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
               })}
             </div>
-            <p className="text-xs text-muted-foreground">This month</p>
+            <p className="text-sm text-muted-foreground mt-1">This month</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
+      <div className="grid gap-4 md:grid-cols-2 animate-fade-in">
+        <Card className="animate-slide-up hover:shadow-xl transition-premium shadow-premium">
           <CardHeader>
-            <CardTitle>Business Overview</CardTitle>
-            <CardDescription>Key metrics</CardDescription>
+            <CardTitle className="text-xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">Business Overview</CardTitle>
+            <CardDescription className="text-base">Key metrics</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Total Customers</span>
-              <span className="text-lg font-semibold">{report.totalCustomers}</span>
+            <div className="flex items-center justify-between p-3 rounded-lg bg-accent/50 transition-premium hover:bg-accent">
+              <span className="text-base text-muted-foreground">Total Customers</span>
+              <span className="text-xl font-bold text-primary">{report.totalCustomers}</span>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Total Products</span>
-              <span className="text-lg font-semibold">{report.totalProducts}</span>
+            <div className="flex items-center justify-between p-3 rounded-lg bg-accent/50 transition-premium hover:bg-accent">
+              <span className="text-base text-muted-foreground">Total Products</span>
+              <span className="text-xl font-bold text-primary">{report.totalProducts}</span>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="animate-slide-up hover:shadow-xl transition-premium shadow-premium" style={{ animationDelay: "100ms" }}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-orange-500" />

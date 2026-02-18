@@ -96,7 +96,7 @@ export default function SubscriptionPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <PageHeader
         title="Subscription Plans"
         description="Choose the perfect plan for your business"

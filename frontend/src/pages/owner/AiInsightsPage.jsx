@@ -109,7 +109,7 @@ export default function AiInsightsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <PageHeader
         title="AI Insights"
         description="Leverage AI to generate insights, emails, and marketing content"

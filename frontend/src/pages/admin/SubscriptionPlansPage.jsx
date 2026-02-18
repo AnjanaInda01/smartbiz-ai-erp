@@ -220,7 +220,7 @@ export default function SubscriptionPlansPage() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <PageHeader
         title="Subscription Plans"
         description="Manage subscription plans for businesses"

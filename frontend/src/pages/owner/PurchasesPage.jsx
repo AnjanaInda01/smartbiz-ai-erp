@@ -136,12 +136,12 @@ export default function PurchasesPage() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <PageHeader
         title="Purchases & Expenses"
         description="Track your daily expenses and purchases"
         action={
-          <Button onClick={() => window.location.href = "/owner/purchases/create"}>
+          <Button onClick={() => window.location.href = "/owner/purchases/create"} className="animate-scale-in shadow-md hover:shadow-lg">
             <Plus className="mr-2 h-4 w-4" />
             Create Purchase
           </Button>
@@ -149,56 +149,56 @@ export default function PurchasesPage() {
       />
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
-        <Card>
+      <div className="grid gap-4 md:grid-cols-4 animate-fade-in">
+        <Card className="animate-slide-up hover:shadow-xl transition-premium bg-gradient-to-br from-primary/5 to-transparent">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Purchases</CardTitle>
-            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-base font-semibold">Total Purchases</CardTitle>
+            <ShoppingCart className="h-5 w-5 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.total}</div>
-            <p className="text-xs text-muted-foreground">All purchases</p>
+            <div className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">{stats.total}</div>
+            <p className="text-sm text-muted-foreground mt-1">All purchases</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="animate-slide-up hover:shadow-xl transition-premium bg-gradient-to-br from-primary/5 to-transparent" style={{ animationDelay: "100ms" }}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-base font-semibold">Total Expenses</CardTitle>
+            <DollarSign className="h-5 w-5 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
               ${stats.totalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
-            <p className="text-xs text-muted-foreground">Total cost</p>
+            <p className="text-sm text-muted-foreground mt-1">Total cost</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="animate-slide-up hover:shadow-xl transition-premium bg-gradient-to-br from-primary/5 to-transparent" style={{ animationDelay: "200ms" }}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-base font-semibold">Pending</CardTitle>
+            <Clock className="h-5 w-5 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.pending}</div>
-            <p className="text-xs text-muted-foreground">Awaiting confirmation</p>
+            <div className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">{stats.pending}</div>
+            <p className="text-sm text-muted-foreground mt-1">Awaiting confirmation</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="animate-slide-up hover:shadow-xl transition-premium bg-gradient-to-br from-primary/5 to-transparent" style={{ animationDelay: "300ms" }}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Confirmed</CardTitle>
-            <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-base font-semibold">Confirmed</CardTitle>
+            <CheckCircle2 className="h-5 w-5 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.confirmed}</div>
-            <p className="text-xs text-muted-foreground">Completed purchases</p>
+            <div className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">{stats.confirmed}</div>
+            <p className="text-sm text-muted-foreground mt-1">Completed purchases</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Purchases Table */}
-      <Card>
+      <Card className="animate-slide-up shadow-premium">
         <CardHeader>
           <CardTitle>Purchase History</CardTitle>
           <CardDescription>All your purchase records</CardDescription>

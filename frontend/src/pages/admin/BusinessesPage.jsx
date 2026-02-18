@@ -164,7 +164,7 @@ export default function BusinessesPage() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <PageHeader
         title="Registered Businesses"
         description="View and manage all registered businesses in the system"

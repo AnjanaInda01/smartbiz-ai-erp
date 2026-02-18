@@ -109,50 +109,50 @@ export default function AiUsagePage() {
   );
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <PageHeader
         title="AI Usage & Logs"
         description="Review AI usage across all businesses"
       />
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
+      <div className="grid gap-4 md:grid-cols-3 animate-fade-in">
+        <Card className="animate-slide-up hover:shadow-xl transition-premium bg-gradient-to-br from-primary/5 to-transparent">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Businesses</CardTitle>
-            <Building2 className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-base font-semibold">Total Businesses</CardTitle>
+            <Building2 className="h-5 w-5 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.total}</div>
-            <p className="text-xs text-muted-foreground">With AI-enabled plans</p>
+            <div className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">{stats.total}</div>
+            <p className="text-sm text-muted-foreground mt-1">With AI-enabled plans</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="animate-slide-up hover:shadow-xl transition-premium bg-gradient-to-br from-primary/5 to-transparent" style={{ animationDelay: "100ms" }}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Used</CardTitle>
-            <Brain className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-base font-semibold">Total Used</CardTitle>
+            <Brain className="h-5 w-5 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalUsed}</div>
-            <p className="text-xs text-muted-foreground">AI requests this month</p>
+            <div className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">{stats.totalUsed}</div>
+            <p className="text-sm text-muted-foreground mt-1">AI requests this month</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="animate-slide-up hover:shadow-xl transition-premium bg-gradient-to-br from-primary/5 to-transparent" style={{ animationDelay: "200ms" }}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Limit</CardTitle>
-            <Crown className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-base font-semibold">Total Limit</CardTitle>
+            <Crown className="h-5 w-5 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalLimit}</div>
-            <p className="text-xs text-muted-foreground">Monthly AI requests limit</p>
+            <div className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">{stats.totalLimit}</div>
+            <p className="text-sm text-muted-foreground mt-1">Monthly AI requests limit</p>
           </CardContent>
         </Card>
       </div>
 
       {/* AI Usage Table */}
-      <Card>
+      <Card className="animate-slide-up shadow-premium">
         <CardHeader>
           <CardTitle>AI Usage by Business</CardTitle>
           <CardDescription>Monthly AI request usage for each business</CardDescription>
