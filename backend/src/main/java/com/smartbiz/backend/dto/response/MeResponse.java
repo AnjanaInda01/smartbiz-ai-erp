@@ -12,4 +12,5 @@ public class MeResponse {
     private String email;
     private Role role;
     private Long businessId; // null for ADMIN
+    private String businessName; // null for ADMIN
 }

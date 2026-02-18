@@ -47,6 +47,7 @@ public class AuthController {
                 .email(u.getEmail())
                 .role(u.getRole())
                 .businessId(u.getBusiness() != null ? u.getBusiness().getId() : null)
+                .businessName(u.getBusiness() != null ? u.getBusiness().getName() : null)
                 .build());
     }
 
