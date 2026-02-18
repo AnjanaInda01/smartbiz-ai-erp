@@ -118,11 +118,12 @@ public class InvoiceServiceImpl implements InvoiceService {
             Product product = productRepository.findByIdAndBusiness_Id(item.getProduct().getId(), businessId)
                     .orElseThrow(() -> new ResourceNotFoundException("Product not found: " + item.getProduct().getId()));
 
-            int newQty = product.getStockQty() - item.getQty();
+            // Check stock availability BEFORE calculating new quantity
             if (product.getStockQty() < item.getQty()) {
-                throw new BadRequestException("Insufficient stock for product: " + product.getName());
+                throw new BadRequestException("Insufficient stock for product: " + product.getName() + ". Available: " + product.getStockQty() + ", Required: " + item.getQty());
             }
 
+            int newQty = product.getStockQty() - item.getQty();
             product.setStockQty(newQty);
             productRepository.save(product);
         }
