@@ -82,9 +82,9 @@ public class ProductServiceImpl implements ProductService {
         p.setSku(request.getSku());
         p.setUnitPrice(request.getUnitPrice());
         p.setStockQty(request.getStockQty());
-        // Set costPrice - default to 0 if not provided, or use unitPrice as fallback
-        p.setCostPrice(BigDecimal.ZERO);
-        p.setLastCostPrice(BigDecimal.ZERO);
+        // Set costPrice - use provided value or default to 0
+        p.setCostPrice(request.getCostPrice() != null ? request.getCostPrice() : BigDecimal.ZERO);
+        p.setLastCostPrice(request.getCostPrice() != null ? request.getCostPrice() : BigDecimal.ZERO);
         p.setActive(true);
 
         return toResponse(productRepository.save(p));
@@ -127,12 +127,10 @@ public class ProductServiceImpl implements ProductService {
         p.setSku(request.getSku());
         p.setUnitPrice(request.getUnitPrice());
         p.setStockQty(request.getStockQty());
-        // Ensure costPrice is set (keep existing value or default to 0)
-        if (p.getCostPrice() == null) {
-            p.setCostPrice(BigDecimal.ZERO);
-        }
-        if (p.getLastCostPrice() == null) {
-            p.setLastCostPrice(BigDecimal.ZERO);
+        // Update costPrice if provided in request
+        if (request.getCostPrice() != null) {
+            p.setCostPrice(request.getCostPrice());
+            p.setLastCostPrice(request.getCostPrice());
         }
 
         return toResponse(productRepository.save(p));

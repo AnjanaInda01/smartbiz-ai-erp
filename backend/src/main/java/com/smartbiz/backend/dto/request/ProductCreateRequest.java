@@ -18,6 +18,9 @@ public class ProductCreateRequest {
     @Min(value = 0, message = "Unit price must be >= 0")
     private BigDecimal unitPrice;
 
+    @Min(value = 0, message = "Cost price must be >= 0")
+    private BigDecimal costPrice;
+
     @NotNull(message = "Stock quantity is required")
     @Min(value = 0, message = "Stock qty must be >= 0")
     private Integer stockQty;

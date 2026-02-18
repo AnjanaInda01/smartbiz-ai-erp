@@ -94,11 +94,33 @@ public class PurchaseServiceImpl implements PurchaseService {
             throw new BadRequestException("Cancelled purchase cannot be confirmed");
         }
 
-        // Stock IN
+        // Stock IN - Update inventory and cost prices
         for (PurchaseItem item : purchase.getItems()) {
             Product product = item.getProduct();
+            
+            // Increase stock quantity
             product.setStockQty(product.getStockQty() + item.getQty());
-            product.setLastCostPrice(item.getCostPrice());
+            
+            // Update cost prices for profit calculation
+            // costPrice = average cost (for accurate profit tracking)
+            // lastCostPrice = latest purchase cost
+            BigDecimal newCostPrice = item.getCostPrice();
+            product.setLastCostPrice(newCostPrice);
+            
+            // Calculate average cost price (weighted average)
+            int oldStock = product.getStockQty() - item.getQty();
+            if (oldStock > 0 && product.getCostPrice() != null && product.getCostPrice().compareTo(BigDecimal.ZERO) > 0) {
+                // Weighted average: (oldStock * oldCost + newQty * newCost) / totalStock
+                BigDecimal oldTotalCost = product.getCostPrice().multiply(BigDecimal.valueOf(oldStock));
+                BigDecimal newTotalCost = newCostPrice.multiply(BigDecimal.valueOf(item.getQty()));
+                BigDecimal totalCost = oldTotalCost.add(newTotalCost);
+                BigDecimal averageCost = totalCost.divide(BigDecimal.valueOf(product.getStockQty()), 2, java.math.RoundingMode.HALF_UP);
+                product.setCostPrice(averageCost);
+            } else {
+                // First purchase or no previous stock - use purchase cost price
+                product.setCostPrice(newCostPrice);
+            }
+            
             productRepository.save(product);
         }
 
