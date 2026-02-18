@@ -101,12 +101,12 @@ export default function InvoicesPage() {
     let subTotal = 0;
     items.forEach((item) => {
       const product = products.find((p) => p.id === parseInt(item.productId));
-      if (product) {
-        subTotal += product.unitPrice * (item.qty || 0);
+      if (product && product.unitPrice != null) {
+        subTotal += (product.unitPrice || 0) * (item.qty || 0);
       }
     });
     const discountAmount = discount || 0;
-    const grandTotal = subTotal - discountAmount;
+    const grandTotal = Math.max(0, subTotal - discountAmount);
     return { subTotal, discountAmount, grandTotal };
   };
 
