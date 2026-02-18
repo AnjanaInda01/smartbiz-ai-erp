@@ -1,6 +1,9 @@
 import api from "./http";
 
+// Admin endpoint - requires ADMIN role
 export const getSubscriptionPlansApi = () => api.get("/api/v1/admin/plans");
+// Owner endpoint - for viewing active plans
+export const getActiveSubscriptionPlansApi = () => api.get("/api/v1/admin/plans/active");
 export const getSubscriptionPlanApi = (id) => api.get(`/api/v1/admin/plans/${id}`);
 export const createSubscriptionPlanApi = (data) => api.post("/api/v1/admin/plans", data);
 export const updateSubscriptionPlanApi = (id, data) => api.put(`/api/v1/admin/plans/${id}`, data);
