@@ -27,7 +27,6 @@ public class PurchaseServiceImpl implements PurchaseService {
     private final BusinessRepository businessRepository;
     private final SupplierRepository supplierRepository;
     private final ProductRepository productRepository;
-    private final SupplierProductRepository supplierProductRepository;
     private final CurrentUserService currentUserService;
 
     @Override
@@ -54,12 +53,12 @@ public class PurchaseServiceImpl implements PurchaseService {
             Product product = productRepository.findByIdAndBusiness_Id(itemReq.getProductId(), businessId)
                     .orElseThrow(() -> new ResourceNotFoundException("Product not found: " + itemReq.getProductId()));
 
-            boolean linked = supplierProductRepository.existsByBusiness_IdAndSupplier_IdAndProduct_Id(
-                    businessId, supplier.getId(), product.getId()
-            );
-            if (!linked) {
-                throw new BadRequestException("Supplier " + supplier.getId() + " is not linked to product " + product.getId());
-            }
+            // Allow any supplier to purchase any product - no pre-linking required
+            // The purchase itself creates the relationship between supplier and product
+            // This supports the business model where:
+            // - Many suppliers can provide the same product category in various brands
+            // - One supplier can provide many products
+            // - One product category can be supplied by many supplier brands
 
             BigDecimal lineTotal = itemReq.getCostPrice().multiply(BigDecimal.valueOf(itemReq.getQty()));
             total = total.add(lineTotal);
