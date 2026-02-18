@@ -1,220 +1,235 @@
-import {
-  Box,
-  Card,
-  CardContent,
-  Grid,
-  Stack,
-  Typography,
-  alpha,
-  useTheme,
-} from "@mui/material";
-import TrendingUpIcon from "@mui/icons-material/TrendingUp";
-import PaymentsIcon from "@mui/icons-material/Payments";
-import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
-import Inventory2Icon from "@mui/icons-material/Inventory2";
-import { LineChart } from "@mui/x-charts/LineChart";
-
-function StatCard({ title, value, subtitle, icon, accent = "primary" }) {
-  const theme = useTheme();
-
-  return (
-    <Card
-      sx={{
-        borderRadius: 4,
-        position: "relative",
-        overflow: "hidden",
-      }}
-    >
-      <Box
-        sx={{
-          position: "absolute",
-          inset: 0,
-          background: `radial-gradient(900px circle at 20% 0%, ${alpha(
-            theme.palette[accent].main,
-            0.18,
-          )} 0%, transparent 45%)`,
-          pointerEvents: "none",
-        }}
-      />
-      <CardContent sx={{ p: 2.5 }}>
-        <Stack
-          direction="row"
-          alignItems="center"
-          justifyContent="space-between"
-          spacing={2}
-        >
-          <Box>
-            <Typography variant="body2" color="text.secondary" fontWeight={700}>
-              {title}
-            </Typography>
-            <Typography variant="h5" fontWeight={900} sx={{ mt: 0.5 }}>
-              {value}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              {subtitle}
-            </Typography>
-          </Box>
-
-          <Box
-            sx={{
-              width: 44,
-              height: 44,
-              borderRadius: 3,
-              display: "grid",
-              placeItems: "center",
-              bgcolor: alpha(theme.palette[accent].main, 0.14),
-              color: theme.palette[accent].main,
-            }}
-          >
-            {icon}
-          </Box>
-        </Stack>
-      </CardContent>
-    </Card>
-  );
-}
+import { useEffect, useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { TrendingUp, TrendingDown, Package, Users, FileText, DollarSign, Crown, AlertCircle } from "lucide-react";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { getProductsApi } from "@/api/productApi";
+import { getCustomersApi } from "@/api/customerApi";
+import { getInvoicesApi } from "@/api/invoiceApi";
+import { getBusinessSubscriptionApi } from "@/api/subscriptionApi";
+import { toast } from "sonner";
+import { Link } from "react-router-dom";
 
 export default function OwnerDashboard() {
-  const theme = useTheme();
+  const [stats, setStats] = useState({
+    totalProducts: 0,
+    totalCustomers: 0,
+    totalInvoices: 0,
+    totalRevenue: 0,
+  });
+  const [chartData, setChartData] = useState([]);
+  const [subscription, setSubscription] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // demo data (replace later with API)
-  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-  const sales = [12, 18, 9, 26, 34, 21, 40]; // LKR (x1000 for example)
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const [productsRes, customersRes, invoicesRes, subscriptionRes] = await Promise.all([
+        getProductsApi(),
+        getCustomersApi(),
+        getInvoicesApi(),
+        getBusinessSubscriptionApi().catch(() => ({ data: null })),
+      ]);
+
+      const products = productsRes.data || [];
+      const customers = customersRes.data || [];
+      const invoices = invoicesRes.data || [];
+
+      const revenue = invoices.reduce((sum, inv) => sum + (inv.grandTotal || 0), 0);
+
+      setStats({
+        totalProducts: products.length,
+        totalCustomers: customers.length,
+        totalInvoices: invoices.length,
+        totalRevenue: revenue,
+      });
+
+      setSubscription(subscriptionRes.data);
+
+      // Generate sample chart data (last 7 days)
+      const last7Days = Array.from({ length: 7 }, (_, i) => {
+        const date = new Date();
+        date.setDate(date.getDate() - (6 - i));
+        return {
+          date: date.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+          sales: Math.floor(Math.random() * 5000) + 1000,
+        };
+      });
+      setChartData(last7Days);
+    } catch (error) {
+      toast.error("Failed to load dashboard data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   return (
-    <Box>
-      {/* Header */}
-      <Stack
-        direction={{ xs: "column", sm: "row" }}
-        alignItems={{ xs: "flex-start", sm: "center" }}
-        justifyContent="space-between"
-        spacing={1}
-        sx={{ mb: 3 }}
-      >
-        <Box>
-          <Typography variant="h4">Dashboard</Typography>
-          <Typography variant="body2" color="text.secondary">
-            Overview of sales, customers, and inventory
-          </Typography>
-        </Box>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+        <p className="text-muted-foreground">Welcome back! Here's your business overview.</p>
+      </div>
 
-        <Card
-          sx={{
-            px: 2,
-            py: 1.2,
-            borderRadius: 4,
-            bgcolor: alpha(theme.palette.primary.main, 0.06),
-          }}
-        >
-          <Stack direction="row" spacing={1} alignItems="center">
-            <TrendingUpIcon fontSize="small" />
-            <Typography variant="body2" fontWeight={800}>
-              This week +12%
-            </Typography>
-          </Stack>
+      {/* Subscription Status */}
+      {subscription && (
+        <Card className={subscription.status === "ACTIVE" ? "border-primary" : "border-destructive"}>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Crown className="h-5 w-5 text-primary" />
+                <CardTitle>Subscription Status</CardTitle>
+              </div>
+              <Badge variant={subscription.status === "ACTIVE" ? "default" : "destructive"}>
+                {subscription.status}
+              </Badge>
+            </div>
+            <CardDescription>
+              {subscription.status === "ACTIVE" 
+                ? `Current plan: ${subscription.planName || "N/A"} - Expires ${new Date(subscription.endDate).toLocaleDateString()}`
+                : "No active subscription. Please subscribe to continue using the service."}
+            </CardDescription>
+          </CardHeader>
+          {subscription.status !== "ACTIVE" && (
+            <CardContent>
+              <Button asChild>
+                <Link to="/owner/subscription">
+                  View Plans
+                </Link>
+              </Button>
+            </CardContent>
+          )}
         </Card>
-      </Stack>
+      )}
 
-      <Grid container spacing={2.2}>
-        {/* KPI row */}
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard
-            title="Sales Today"
-            value="LKR 0.00"
-            subtitle="Realtime"
-            icon={<PaymentsIcon />}
-            accent="primary"
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard
-            title="Sales This Month"
-            value="LKR 0.00"
-            subtitle="Monthly"
-            icon={<PaymentsIcon />}
-            accent="success"
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard
-            title="Total Customers"
-            value="0"
-            subtitle="Active"
-            icon={<PeopleAltIcon />}
-            accent="warning"
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatCard
-            title="Low Stock"
-            value="0"
-            subtitle="Stock < 10"
-            icon={<Inventory2Icon />}
-            accent="error"
-          />
-        </Grid>
+      {/* KPI Cards */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Products</CardTitle>
+            <Package className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.totalProducts}</div>
+            <p className="text-xs text-muted-foreground">
+              <Badge variant="secondary" className="mr-1">
+                <TrendingUp className="h-3 w-3 mr-1" />
+                Active
+              </Badge>
+            </p>
+          </CardContent>
+        </Card>
 
-        {/* Chart */}
-        <Grid item xs={12} md={8}>
-          <Card sx={{ borderRadius: 4 }}>
-            <CardContent sx={{ p: 2.5 }}>
-              <Stack spacing={0.5} sx={{ mb: 2 }}>
-                <Typography fontWeight={900}>Sales Trend</Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Weekly performance (demo)
-                </Typography>
-              </Stack>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Customers</CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.totalCustomers}</div>
+            <p className="text-xs text-muted-foreground">
+              <Badge variant="secondary" className="mr-1">
+                Active customers
+              </Badge>
+            </p>
+          </CardContent>
+        </Card>
 
-              <Box sx={{ height: 320 }}>
-                <LineChart
-                  xAxis={[{ scaleType: "point", data: days }]}
-                  series={[
-                    {
-                      data: sales,
-                      label: "Sales",
-                      area: true,
-                    },
-                  ]}
-                  height={320}
-                />
-              </Box>
-            </CardContent>
-          </Card>
-        </Grid>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Invoices</CardTitle>
+            <FileText className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.totalInvoices}</div>
+            <p className="text-xs text-muted-foreground">
+              All time invoices
+            </p>
+          </CardContent>
+        </Card>
 
-        {/* Right panel */}
-        <Grid item xs={12} md={4}>
-          <Card sx={{ borderRadius: 4, height: "100%" }}>
-            <CardContent sx={{ p: 2.5 }}>
-              <Typography fontWeight={900}>Quick Actions</Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                Common tasks
-              </Typography>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">${stats.totalRevenue.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">
+              <Badge variant="secondary" className="mr-1">
+                <TrendingUp className="h-3 w-3 mr-1" />
+                Revenue
+              </Badge>
+            </p>
+          </CardContent>
+        </Card>
+      </div>
 
-              <Stack spacing={1.2}>
-                <Card sx={{ p: 1.6, borderRadius: 3 }}>
-                  <Typography fontWeight={800}>+ Add Product</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Create new inventory item
-                  </Typography>
-                </Card>
-                <Card sx={{ p: 1.6, borderRadius: 3 }}>
-                  <Typography fontWeight={800}>+ Create Invoice</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Bill a customer quickly
-                  </Typography>
-                </Card>
-                <Card sx={{ p: 1.6, borderRadius: 3 }}>
-                  <Typography fontWeight={800}>Restock Purchase</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Update low stock items
-                  </Typography>
-                </Card>
-              </Stack>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
-    </Box>
+      {/* Sales Trend Chart */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Sales Trend</CardTitle>
+          <CardDescription>Last 7 days sales performance</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="date" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Line type="monotone" dataKey="sales" stroke="hsl(var(--primary))" strokeWidth={2} />
+            </LineChart>
+          </ResponsiveContainer>
+        </CardContent>
+      </Card>
+
+      {/* Quick Actions */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Quick Actions</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-3">
+            <Button asChild variant="outline" className="h-auto flex-col items-start p-4">
+              <Link to="/owner/products">
+                <Package className="mb-2 h-6 w-6" />
+                <div className="text-left">
+                  <div className="font-semibold">Manage Products</div>
+                  <div className="text-sm text-muted-foreground">Add or edit products</div>
+                </div>
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="h-auto flex-col items-start p-4">
+              <Link to="/owner/customers">
+                <Users className="mb-2 h-6 w-6" />
+                <div className="text-left">
+                  <div className="font-semibold">Manage Customers</div>
+                  <div className="text-sm text-muted-foreground">View customer list</div>
+                </div>
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="h-auto flex-col items-start p-4">
+              <Link to="/owner/invoices">
+                <FileText className="mb-2 h-6 w-6" />
+                <div className="text-left">
+                  <div className="font-semibold">Create Invoice</div>
+                  <div className="text-sm text-muted-foreground">Generate new invoice</div>
+                </div>
+              </Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

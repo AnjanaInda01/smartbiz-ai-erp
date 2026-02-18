@@ -1,18 +1,17 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { loginApi, meApi } from "../api/authApi";
 
 const AuthContext = createContext(null);
-export const useAuth = () => useContext(AuthContext);
+
+export const useAuth = () => {
+  const ctx = useContext(AuthContext);
+  if (!ctx) {
+    throw new Error("useAuth() must be used inside <AuthProvider />");
+  }
+  return ctx;
+};
 
 export default function AuthProvider({ children }) {
-  // Load cached user first for faster UI (optional but nice)
   const [user, setUser] = useState(() => {
     try {
       const cached = localStorage.getItem("me");
@@ -51,34 +50,31 @@ export default function AuthProvider({ children }) {
     loadMe();
   }, [loadMe]);
 
-  const login = async (email, password) => {
-    const res = await loginApi({ email, password });
+  const login = useCallback(
+    async (email, password) => {
+      const res = await loginApi({ email, password });
 
-    // ✅ backend returns "accessToken" (not "token")
-    const token = res.data?.accessToken || res.data?.token;
+      const token = res.data?.accessToken;
+      if (!token) throw new Error("Login response did not include accessToken");
 
-    if (!token) {
-      throw new Error("Login response did not include accessToken");
-    }
+      localStorage.setItem("accessToken", token);
 
-    localStorage.setItem("accessToken", token);
+      if (res.data?.role) {
+        localStorage.setItem(
+          "me",
+          JSON.stringify({
+            name: res.data?.name,
+            email: res.data?.email,
+            role: res.data?.role,
+            businessId: res.data?.businessId ?? null,
+          })
+        );
+      }
 
-    // (optional but nice) store basic user from login response immediately
-    if (res.data?.role) {
-      localStorage.setItem(
-        "me",
-        JSON.stringify({
-          name: res.data?.name,
-          email: res.data?.email,
-          role: res.data?.role,
-          businessId: res.data?.businessId ?? null,
-        }),
-      );
-    }
-
-    // then load full /me (id, businessId, etc)
-    await loadMe();
-  };
+      await loadMe();
+    },
+    [loadMe]
+  );
 
   const logout = useCallback(() => {
     localStorage.removeItem("accessToken");
@@ -87,15 +83,8 @@ export default function AuthProvider({ children }) {
   }, []);
 
   const value = useMemo(
-    () => ({
-      user,
-      loading,
-      login,
-      logout,
-      reloadMe: loadMe,
-      setUser, // optional, but sometimes helpful
-    }),
-    [user, loading, login, logout, loadMe],
+    () => ({ user, loading, login, logout, reloadMe: loadMe }),
+    [user, loading, login, logout, loadMe]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

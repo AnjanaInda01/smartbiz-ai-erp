@@ -1,175 +1,92 @@
-import { useEffect, useMemo, useState } from "react";
-import { Link as RouterLink, useLocation, useNavigate } from "react-router-dom";
-import {
-  Alert,
-  Box,
-  Button,
-  Card,
-  CardContent,
-  CircularProgress,
-  Divider,
-  IconButton,
-  InputAdornment,
-  Link,
-  Stack,
-  TextField,
-  Typography,
-} from "@mui/material";
-import { Visibility, VisibilityOff } from "@mui/icons-material";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { useAuth } from "@/auth/AuthProvider";
+import { roleHome } from "@/auth/roleRedirect";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { toast } from "sonner";
+import LoadingScreen from "@/components/LoadingScreen";
 
-import AuthShell from "../components/AuthShell";
-import { useAuth } from "../auth/AuthProvider";
-import { roleHome } from "../auth/roleRedirect";
+const loginSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(1, "Password is required"),
+});
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const location = useLocation();
+  const { login, loading: authLoading } = useAuth();
+  const [loading, setLoading] = useState(false);
 
-  const { login, user } = useAuth();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(loginSchema),
+  });
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-
-  const [showPassword, setShowPassword] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState("");
-
-  // If user tried to access protected page, we can redirect back after login.
-  const from = useMemo(() => {
-    const state = location.state;
-    // Optional: if you used location.state.from in ProtectedRoute in future
-    if (state && typeof state === "object" && state.from && state.from.pathname) {
-      return state.from.pathname;
-    }
-    return null;
-  }, [location.state]);
-
-  // ✅ Redirect after auth state is ready (no navigation during render)
-  useEffect(() => {
-    if (user?.role) {
-      // Prefer "from" if available, else role-based home
-      navigate(from ?? roleHome(user.role), { replace: true });
-    }
-  }, [user, from, navigate]);
-
-  async function handleSubmit(e) {
-    e.preventDefault();
-    setError("");
-
-    const cleanEmail = email.trim();
-
-    if (!cleanEmail || !password) {
-      setError("Please enter your email and password.");
-      return;
-    }
-
+  const onSubmit = async (data) => {
     try {
-      setSubmitting(true);
-      await login(cleanEmail, password);
-      // ✅ Don't navigate here — useEffect will handle redirect when user is set
-    } catch (err) {
-      // Your login() may throw with axios error; this keeps it safe
-      const msg =
-        err?.response?.data?.message ||
-        err?.message ||
-        "Login failed. Please check your credentials and try again.";
-      setError(msg);
+      setLoading(true);
+      await login(data.email, data.password);
+      const user = JSON.parse(localStorage.getItem("me") || "{}");
+      const home = roleHome(user.role);
+      navigate(home);
+      toast.success("Login successful");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Login failed");
     } finally {
-      setSubmitting(false);
+      setLoading(false);
     }
+  };
+
+  if (authLoading) {
+    return <LoadingScreen />;
   }
 
   return (
-    <AuthShell>
-      <Box
-        sx={{
-          width: "100%",
-          maxWidth: 420,
-          mx: "auto",
-        }}
-      >
-        <Card elevation={8} sx={{ borderRadius: 3 }}>
-          <CardContent sx={{ p: 4 }}>
-            <Stack spacing={2}>
-              <Box>
-                <Typography variant="h5" fontWeight={800}>
-                  SmartBiz ERP
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Sign in to continue
-                </Typography>
-              </Box>
-
-              {error ? <Alert severity="error">{error}</Alert> : null}
-
-              <Box component="form" onSubmit={handleSubmit}>
-                <Stack spacing={2}>
-                  <TextField
-                    label="Email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    autoComplete="email"
-                    fullWidth
-                  />
-
-                  <TextField
-                    label="Password"
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    autoComplete="current-password"
-                    fullWidth
-                    InputProps={{
-                      endAdornment: (
-                        <InputAdornment position="end">
-                          <IconButton
-                            aria-label={showPassword ? "Hide password" : "Show password"}
-                            onClick={() => setShowPassword((v) => !v)}
-                            edge="end"
-                          >
-                            {showPassword ? <VisibilityOff /> : <Visibility />}
-                          </IconButton>
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
-
-                  <Button
-                    type="submit"
-                    variant="contained"
-                    size="large"
-                    fullWidth
-                    disabled={submitting}
-                    sx={{ py: 1.2, borderRadius: 2 }}
-                  >
-                    {submitting ? (
-                      <Stack direction="row" spacing={1} alignItems="center">
-                        <CircularProgress size={18} />
-                        <span>Signing in...</span>
-                      </Stack>
-                    ) : (
-                      "Sign In"
-                    )}
-                  </Button>
-
-                  <Stack direction="row" justifyContent="space-between" alignItems="center">
-                    <Link component={RouterLink} to="/forgot-password" underline="hover">
-                      Forgot password?
-                    </Link>
-                  </Stack>
-
-                  <Divider sx={{ my: 1 }} />
-                  <Typography variant="caption" color="text.secondary">
-                    Tip: Use the correct account role (Admin / Owner / Staff). You’ll be redirected
-                    automatically after login.
-                  </Typography>
-                </Stack>
-              </Box>
-            </Stack>
-          </CardContent>
-        </Card>
-      </Box>
-    </AuthShell>
+    <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
+          <CardDescription>Enter your credentials to access your account</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="name@example.com"
+                {...register("email")}
+              />
+              {errors.email && (
+                <p className="text-sm text-destructive">{errors.email.message}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                {...register("password")}
+              />
+              {errors.password && (
+                <p className="text-sm text-destructive">{errors.password.message}</p>
+              )}
+            </div>
+            <Button type="submit" className="w-full" disabled={loading}>
+              {loading ? "Signing in..." : "Sign in"}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

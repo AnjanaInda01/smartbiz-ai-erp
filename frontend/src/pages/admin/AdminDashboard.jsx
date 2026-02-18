@@ -1,36 +1,35 @@
-import { Box, Grid, Paper, Typography } from "@mui/material";
-
-function Card({ title, value }) {
-  return (
-    <Paper sx={{ p: 2.2, borderRadius: 3 }}>
-      <Typography variant="body2" sx={{ opacity: 0.7 }}>{title}</Typography>
-      <Typography variant="h4" fontWeight={900} sx={{ mt: 0.5 }}>{value}</Typography>
-    </Paper>
-  );
-}
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Crown } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export default function AdminDashboard() {
   return (
-    <Box>
-      <Typography variant="h5" fontWeight={900} sx={{ mb: 2 }}>
-        Admin Overview
-      </Typography>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
+        <p className="text-muted-foreground">System administration panel</p>
+      </div>
 
-      <Grid container spacing={2}>
-        <Grid item xs={12} sm={6} md={3}><Card title="Total Businesses" value="0" /></Grid>
-        <Grid item xs={12} sm={6} md={3}><Card title="Active Subscriptions" value="0" /></Grid>
-        <Grid item xs={12} sm={6} md={3}><Card title="AI Requests (Month)" value="0" /></Grid>
-        <Grid item xs={12} sm={6} md={3}><Card title="Revenue (Plans)" value="LKR 0.00" /></Grid>
-
-        <Grid item xs={12}>
-          <Paper sx={{ p: 2.2, borderRadius: 3, height: 260 }}>
-            <Typography fontWeight={900}>System-wide Stats</Typography>
-            <Typography variant="body2" sx={{ opacity: 0.7 }}>
-              Next: connect admin endpoints for businesses, plans, AI logs
-            </Typography>
-          </Paper>
-        </Grid>
-      </Grid>
-    </Box>
+      <Card>
+        <CardHeader>
+          <CardTitle>Welcome, Admin</CardTitle>
+          <CardDescription>System administration and management</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-4 md:grid-cols-2">
+            <Button asChild variant="outline" className="h-auto flex-col items-start p-4">
+              <Link to="/admin/subscription-plans">
+                <Crown className="mb-2 h-6 w-6" />
+                <div className="text-left">
+                  <div className="font-semibold">Subscription Plans</div>
+                  <div className="text-sm text-muted-foreground">Manage subscription plans</div>
+                </div>
+              </Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

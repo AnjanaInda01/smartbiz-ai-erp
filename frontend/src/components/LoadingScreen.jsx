@@ -1,9 +1,10 @@
-import { Box, CircularProgress } from "@mui/material";
-
 export default function LoadingScreen() {
   return (
-    <Box sx={{ minHeight: "100vh", display: "grid", placeItems: "center" }}>
-      <CircularProgress />
-    </Box>
+    <div className="flex h-screen items-center justify-center">
+      <div className="flex flex-col items-center gap-4">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+        <p className="text-sm text-muted-foreground">Loading...</p>
+      </div>
+    </div>
   );
 }

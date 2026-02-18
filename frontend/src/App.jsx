@@ -1,13 +1,17 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
-import ForgotPasswordPage from "./pages/ForgotPasswordPage";
-import VerifyOtpPage from "./pages/VerifyOtpPage";
-import ResetPasswordPage from "./pages/ResetPasswordPage";
-
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import OwnerDashboard from "./pages/owner/OwnerDashboard";
 import StaffDashboard from "./pages/staff/StaffDashboard";
-
+import OwnerProductsPage from "./pages/owner/ProductsPage";
+import OwnerCustomersPage from "./pages/owner/CustomersPage";
+import OwnerInvoicesPage from "./pages/owner/InvoicesPage";
+import OwnerInvoiceDetailPage from "./pages/owner/InvoiceDetailPage";
+import OwnerSubscriptionPage from "./pages/owner/SubscriptionPage";
+import StaffProductsPage from "./pages/staff/ProductsPage";
+import StaffInvoicesPage from "./pages/staff/InvoicesPage";
+import StaffInvoiceDetailPage from "./pages/staff/InvoiceDetailPage";
+import AdminSubscriptionPlansPage from "./pages/admin/SubscriptionPlansPage";
 import ProtectedRoute from "./auth/ProtectedRoute";
 import { useAuth } from "./auth/AuthProvider";
 import { roleHome } from "./auth/roleRedirect";
@@ -18,7 +22,6 @@ export default function App() {
 
   return (
     <Routes>
-      {/* Prevent redirect flicker while /me is loading */}
       <Route
         path="/"
         element={
@@ -29,49 +32,132 @@ export default function App() {
       />
 
       <Route path="/login" element={<LoginPage />} />
-      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-      <Route path="/verify-otp" element={<VerifyOtpPage />} />
-      <Route path="/reset-password" element={<ResetPasswordPage />} />
 
       {/* OWNER area */}
       <Route
-        path="/owner/*"
+        path="/owner"
         element={
-          <ProtectedRoute allowRoles={["OWNER"]}>
-            <DashboardLayout />
+          <ProtectedRoute>
+            <DashboardLayout>
+              <OwnerDashboard />
+            </DashboardLayout>
           </ProtectedRoute>
         }
-      >
-        <Route index element={<OwnerDashboard />} />
-        {/* Later:
-            <Route path="products" element={<OwnerProducts />} />
-            <Route path="customers" element={<OwnerCustomers />} />
-        */}
-      </Route>
+      />
+      <Route
+        path="/owner/products"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <OwnerProductsPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/owner/customers"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <OwnerCustomersPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/owner/invoices"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <OwnerInvoicesPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/owner/invoices/:id"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <OwnerInvoiceDetailPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/owner/subscription"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <OwnerSubscriptionPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
 
       {/* STAFF area */}
       <Route
-        path="/staff/*"
+        path="/staff"
         element={
-          <ProtectedRoute allowRoles={["STAFF"]}>
-            <DashboardLayout />
+          <ProtectedRoute>
+            <DashboardLayout>
+              <StaffDashboard />
+            </DashboardLayout>
           </ProtectedRoute>
         }
-      >
-        <Route index element={<StaffDashboard />} />
-      </Route>
+      />
+      <Route
+        path="/staff/products"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <StaffProductsPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/staff/invoices"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <StaffInvoicesPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/staff/invoices/:id"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <StaffInvoiceDetailPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
 
       {/* ADMIN area */}
       <Route
-        path="/admin/*"
+        path="/admin"
         element={
-          <ProtectedRoute allowRoles={["ADMIN"]}>
-            <DashboardLayout />
+          <ProtectedRoute>
+            <DashboardLayout>
+              <AdminDashboard />
+            </DashboardLayout>
           </ProtectedRoute>
         }
-      >
-        <Route index element={<AdminDashboard />} />
-      </Route>
+      />
+      <Route
+        path="/admin/subscription-plans"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <AdminSubscriptionPlansPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

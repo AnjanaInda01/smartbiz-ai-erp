@@ -18,3 +18,5 @@ export const isAllowedRole = (role, allowRoles = []) => {
   const r = normalizeRole(role);
   return allowRoles.map(normalizeRole).includes(r);
 };
+
+export { normalizeRole };
