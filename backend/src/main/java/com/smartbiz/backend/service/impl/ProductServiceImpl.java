@@ -17,6 +17,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -81,6 +82,9 @@ public class ProductServiceImpl implements ProductService {
         p.setSku(request.getSku());
         p.setUnitPrice(request.getUnitPrice());
         p.setStockQty(request.getStockQty());
+        // Set costPrice - default to 0 if not provided, or use unitPrice as fallback
+        p.setCostPrice(BigDecimal.ZERO);
+        p.setLastCostPrice(BigDecimal.ZERO);
         p.setActive(true);
 
         return toResponse(productRepository.save(p));
@@ -123,6 +127,13 @@ public class ProductServiceImpl implements ProductService {
         p.setSku(request.getSku());
         p.setUnitPrice(request.getUnitPrice());
         p.setStockQty(request.getStockQty());
+        // Ensure costPrice is set (keep existing value or default to 0)
+        if (p.getCostPrice() == null) {
+            p.setCostPrice(BigDecimal.ZERO);
+        }
+        if (p.getLastCostPrice() == null) {
+            p.setLastCostPrice(BigDecimal.ZERO);
+        }
 
         return toResponse(productRepository.save(p));
     }
