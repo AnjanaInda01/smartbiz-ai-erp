@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { ShoppingCart, DollarSign, CheckCircle2, Clock } from "lucide-react";
+import { ShoppingCart, DollarSign, CheckCircle2, Clock, Plus } from "lucide-react";
 
 export default function PurchasesPage() {
   const [purchases, setPurchases] = useState([]);
@@ -30,7 +30,7 @@ export default function PurchasesPage() {
       setPurchases(data);
 
       const totalCost = data.reduce((sum, p) => sum + (parseFloat(p.totalCost) || 0), 0);
-      const pending = data.filter((p) => p.status === "PENDING").length;
+      const pending = data.filter((p) => p.status === "DRAFT" || p.status === "PENDING").length;
       const confirmed = data.filter((p) => p.status === "CONFIRMED").length;
 
       setStats({
@@ -106,7 +106,7 @@ export default function PurchasesPage() {
               ) : (
                 <Clock className="h-3 w-3" />
               )}
-              {status}
+              {status === "DRAFT" ? "DRAFT" : status}
             </Badge>
           );
         },
@@ -116,14 +116,17 @@ export default function PurchasesPage() {
         header: "Actions",
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
-            {row.original.status === "PENDING" && (
+            {(row.original.status === "DRAFT" || row.original.status === "PENDING") && (
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => handleConfirm(row.original.id)}
               >
-                Confirm
+                Confirm Purchase
               </Button>
+            )}
+            {row.original.status === "CONFIRMED" && (
+              <span className="text-sm text-muted-foreground">Confirmed</span>
             )}
           </div>
         ),
@@ -137,6 +140,12 @@ export default function PurchasesPage() {
       <PageHeader
         title="Purchases & Expenses"
         description="Track your daily expenses and purchases"
+        action={
+          <Button onClick={() => window.location.href = "/owner/purchases/create"}>
+            <Plus className="mr-2 h-4 w-4" />
+            Create Purchase
+          </Button>
+        }
       />
 
       {/* Stats Cards */}

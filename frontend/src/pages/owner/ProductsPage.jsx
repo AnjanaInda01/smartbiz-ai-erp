@@ -21,6 +21,7 @@ const productSchema = z.object({
   name: z.string().min(1, "Name is required"),
   sku: z.string().optional(),
   unitPrice: z.coerce.number().min(0, "Price must be >= 0"),
+  costPrice: z.coerce.number().min(0, "Cost price must be >= 0").optional(),
   stockQty: z.coerce.number().min(0, "Stock must be >= 0"),
 });
 
@@ -72,6 +73,7 @@ export default function ProductsPage() {
       name: product.name,
       sku: product.sku || "",
       unitPrice: product.unitPrice,
+      costPrice: product.costPrice || 0,
       stockQty: product.stockQty,
     });
     setDialogOpen(true);
@@ -84,11 +86,20 @@ export default function ProductsPage() {
 
   const onSubmit = async (data) => {
     try {
+      // Prepare data - only include costPrice if provided
+      const productData = {
+        name: data.name,
+        sku: data.sku || null,
+        unitPrice: data.unitPrice,
+        stockQty: data.stockQty,
+        ...(data.costPrice && data.costPrice > 0 ? { costPrice: data.costPrice } : {}),
+      };
+
       if (selectedProduct) {
-        await updateProductApi(selectedProduct.id, data);
+        await updateProductApi(selectedProduct.id, productData);
         toast.success("Product updated successfully");
       } else {
-        await createProductApi(data);
+        await createProductApi(productData);
         toast.success("Product created successfully");
       }
       setDialogOpen(false);
@@ -210,11 +221,20 @@ export default function ProductsPage() {
                 <Input id="sku" {...register("sku")} />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="unitPrice">Unit Price *</Label>
+                <Label htmlFor="unitPrice">Unit Price (Selling Price) *</Label>
                 <Input id="unitPrice" type="number" step="0.01" {...register("unitPrice")} />
                 {errors.unitPrice && (
                   <p className="text-sm text-destructive">{errors.unitPrice.message}</p>
                 )}
+                <p className="text-xs text-muted-foreground">Price at which you sell to customers</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="costPrice">Cost Price (Purchase Price)</Label>
+                <Input id="costPrice" type="number" step="0.01" {...register("costPrice")} />
+                {errors.costPrice && (
+                  <p className="text-sm text-destructive">{errors.costPrice.message}</p>
+                )}
+                <p className="text-xs text-muted-foreground">Price at which you buy from suppliers (for profit calculation)</p>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="stockQty">Stock Quantity *</Label>

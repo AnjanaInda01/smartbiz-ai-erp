@@ -69,9 +69,13 @@ public class InvoiceServiceImpl implements InvoiceService {
 
             BigDecimal unitPrice = product.getUnitPrice();
             BigDecimal lineTotal = unitPrice.multiply(BigDecimal.valueOf(itemReq.getQty()));
-            BigDecimal costPrice = product.getLastCostPrice() == null
-                    ? BigDecimal.ZERO
-                    : product.getLastCostPrice();
+            
+            // Use costPrice for profit calculation (preferred), fallback to lastCostPrice
+            BigDecimal costPrice = product.getCostPrice() != null && product.getCostPrice().compareTo(BigDecimal.ZERO) > 0
+                    ? product.getCostPrice()
+                    : (product.getLastCostPrice() != null && product.getLastCostPrice().compareTo(BigDecimal.ZERO) > 0
+                            ? product.getLastCostPrice()
+                            : BigDecimal.ZERO);
 
             InvoiceItem item = InvoiceItem.builder()
                     .product(product)
