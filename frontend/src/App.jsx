@@ -12,6 +12,7 @@ import StaffProductsPage from "./pages/staff/ProductsPage";
 import StaffInvoicesPage from "./pages/staff/InvoicesPage";
 import StaffInvoiceDetailPage from "./pages/staff/InvoiceDetailPage";
 import AdminSubscriptionPlansPage from "./pages/admin/SubscriptionPlansPage";
+import AdminBusinessesPage from "./pages/admin/BusinessesPage";
 import ProtectedRoute from "./auth/ProtectedRoute";
 import { useAuth } from "./auth/AuthProvider";
 import { roleHome } from "./auth/roleRedirect";
@@ -144,6 +145,16 @@ export default function App() {
           <ProtectedRoute>
             <DashboardLayout>
               <AdminDashboard />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/businesses"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <AdminBusinessesPage />
             </DashboardLayout>
           </ProtectedRoute>
         }

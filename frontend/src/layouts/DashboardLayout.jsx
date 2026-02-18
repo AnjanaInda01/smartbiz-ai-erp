@@ -13,6 +13,7 @@ import {
   LogOut,
   User,
   Crown,
+  Building2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -47,6 +48,7 @@ const sidebarItems = {
   ],
   admin: [
     { icon: LayoutDashboard, label: "Dashboard", path: "/admin" },
+    { icon: Building2, label: "Businesses", path: "/admin/businesses" },
     { icon: Crown, label: "Subscription Plans", path: "/admin/subscription-plans" },
   ],
 };

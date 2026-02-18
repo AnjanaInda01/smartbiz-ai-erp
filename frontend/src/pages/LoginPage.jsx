@@ -39,7 +39,12 @@ export default function LoginPage() {
       navigate(home);
       toast.success("Login successful");
     } catch (error) {
-      toast.error(error.response?.data?.message || "Login failed");
+      console.error("Login error:", error);
+      const errorMessage = 
+        error.response?.data?.message || 
+        error.message || 
+        (error.code === "ERR_NETWORK" ? "Cannot connect to backend. Is the server running?" : "Login failed");
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

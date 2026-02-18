@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Crown } from "lucide-react";
+import { Crown, Building2 } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export default function AdminDashboard() {
@@ -18,6 +18,15 @@ export default function AdminDashboard() {
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2">
+            <Button asChild variant="outline" className="h-auto flex-col items-start p-4">
+              <Link to="/admin/businesses">
+                <Building2 className="mb-2 h-6 w-6" />
+                <div className="text-left">
+                  <div className="font-semibold">Registered Businesses</div>
+                  <div className="text-sm text-muted-foreground">View and manage businesses</div>
+                </div>
+              </Link>
+            </Button>
             <Button asChild variant="outline" className="h-auto flex-col items-start p-4">
               <Link to="/admin/subscription-plans">
                 <Crown className="mb-2 h-6 w-6" />
