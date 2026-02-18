@@ -18,6 +18,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Service
@@ -49,10 +50,10 @@ public class AuthServiceImpl implements AuthService {
         owner.setBusiness(business);
         owner = (User) userRepository.save(owner);
 
-        String token = jwtService.generateToken(
-                owner.getEmail(),
-                Map.of("role", owner.getRole().name(), "businessId", business.getId())
-        );
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("role", owner.getRole().name());
+        claims.put("businessId", business.getId());
+        String token = jwtService.generateToken(owner.getEmail(), claims);
 
         return new AuthResponse(token, owner.getRole(), business.getId(), owner.getName(), owner.getEmail());
     }
@@ -68,10 +69,14 @@ public class AuthServiceImpl implements AuthService {
 
         Long businessId = (user.getBusiness() != null) ? user.getBusiness().getId() : null;
 
-        String token = jwtService.generateToken(
-                user.getEmail(),
-                Map.of("role", user.getRole().name(), "businessId", businessId)
-        );
+        // Build claims map - handle null businessId for admin users
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("role", user.getRole().name());
+        if (businessId != null) {
+            claims.put("businessId", businessId);
+        }
+
+        String token = jwtService.generateToken(user.getEmail(), claims);
 
         return new AuthResponse(token, user.getRole(), businessId, user.getName(), user.getEmail());
     }
