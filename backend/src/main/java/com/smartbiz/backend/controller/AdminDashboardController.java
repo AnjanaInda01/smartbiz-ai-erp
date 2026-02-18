@@ -1,6 +1,7 @@
 package com.smartbiz.backend.controller;
 
 import com.smartbiz.backend.dto.response.AdminAiUsageResponse;
+import com.smartbiz.backend.dto.response.SystemStatisticsResponse;
 import com.smartbiz.backend.service.AdminDashboardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,5 +21,10 @@ public class AdminDashboardController {
     @GetMapping("/ai-usage")
     public ResponseEntity<List<AdminAiUsageResponse>> aiUsage() {
         return ResponseEntity.ok(adminDashboardService.getAiUsageSummary());
+    }
+
+    @GetMapping("/statistics")
+    public ResponseEntity<SystemStatisticsResponse> statistics() {
+        return ResponseEntity.ok(adminDashboardService.getSystemStatistics());
     }
 }

@@ -1,9 +1,10 @@
 package com.smartbiz.backend.service.impl;
 
 import com.smartbiz.backend.dto.response.AdminAiUsageResponse;
+import com.smartbiz.backend.dto.response.SystemStatisticsResponse;
 import com.smartbiz.backend.entity.BusinessSubscription;
-import com.smartbiz.backend.repository.AiRequestRepository;
-import com.smartbiz.backend.repository.BusinessSubscriptionRepository;
+import com.smartbiz.backend.enums.SubscriptionStatus;
+import com.smartbiz.backend.repository.*;
 import com.smartbiz.backend.service.AdminDashboardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,11 @@ public class AdminDashboardServiceImpl implements AdminDashboardService {
 
     private final BusinessSubscriptionRepository subscriptionRepository;
     private final AiRequestRepository aiRequestRepository;
+    private final BusinessRepository businessRepository;
+    private final UserRepository userRepository;
+    private final ProductRepository productRepository;
+    private final CustomerRepository customerRepository;
+    private final InvoiceRepository invoiceRepository;
 
     @Override
     public List<AdminAiUsageResponse> getAiUsageSummary() {
@@ -58,5 +64,26 @@ public class AdminDashboardServiceImpl implements AdminDashboardService {
                             .build();
                 })
                 .toList();
+    }
+
+    @Override
+    public SystemStatisticsResponse getSystemStatistics() {
+        long totalBusinesses = businessRepository.count();
+        long totalUsers = userRepository.count();
+        long totalProducts = productRepository.count();
+        long totalCustomers = customerRepository.count();
+        long totalInvoices = invoiceRepository.count();
+        long totalAiRequests = aiRequestRepository.count();
+        long activeSubscriptions = subscriptionRepository.findAllActive().size();
+
+        return SystemStatisticsResponse.builder()
+                .totalBusinesses(totalBusinesses)
+                .totalUsers(totalUsers)
+                .totalProducts(totalProducts)
+                .totalCustomers(totalCustomers)
+                .totalInvoices(totalInvoices)
+                .totalAiRequests(totalAiRequests)
+                .activeSubscriptions(activeSubscriptions)
+                .build();
     }
 }

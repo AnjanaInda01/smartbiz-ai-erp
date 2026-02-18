@@ -1,9 +1,12 @@
 package com.smartbiz.backend.controller;
 
+import com.smartbiz.backend.dto.request.BusinessCreateRequest;
 import com.smartbiz.backend.dto.response.BusinessResponse;
 import com.smartbiz.backend.entity.Business;
+import com.smartbiz.backend.exception.ConflictException;
 import com.smartbiz.backend.exception.ResourceNotFoundException;
 import com.smartbiz.backend.repository.BusinessRepository;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -33,6 +36,31 @@ public class BusinessController {
                         .build())
                 .collect(Collectors.toList());
         return ResponseEntity.ok(responses);
+    }
+
+    @PostMapping
+    public ResponseEntity<BusinessResponse> createBusiness(@Valid @RequestBody BusinessCreateRequest request) {
+        // Check if email already exists
+        if (businessRepository.existsByEmail(request.getEmail())) {
+            throw new ConflictException("Business with this email already exists");
+        }
+
+        Business business = new Business();
+        business.setName(request.getName());
+        business.setEmail(request.getEmail());
+        business.setPhone(request.getPhone());
+        business.setAddress(request.getAddress());
+        business = businessRepository.save(business);
+
+        BusinessResponse response = BusinessResponse.builder()
+                .id(business.getId())
+                .name(business.getName())
+                .email(business.getEmail())
+                .phone(business.getPhone())
+                .address(business.getAddress())
+                .build();
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{id}")
