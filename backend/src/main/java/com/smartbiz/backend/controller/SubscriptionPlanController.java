@@ -1,6 +1,7 @@
 package com.smartbiz.backend.controller;
 
 import com.smartbiz.backend.entity.SubscriptionPlan;
+import com.smartbiz.backend.exception.ResourceNotFoundException;
 import com.smartbiz.backend.repository.SubscriptionPlanRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +20,10 @@ public class SubscriptionPlanController {
     @PostMapping
     public ResponseEntity<SubscriptionPlan> create(
             @RequestBody SubscriptionPlan plan) {
+        // Set defaults if not provided
+        if (plan.getActive() == null) {
+            plan.setActive(true);
+        }
         return ResponseEntity.ok(planRepository.save(plan));
     }
 
@@ -27,19 +32,49 @@ public class SubscriptionPlanController {
         return ResponseEntity.ok(planRepository.findAll());
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<SubscriptionPlan> getById(@PathVariable Long id) {
+        SubscriptionPlan plan = planRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Subscription plan not found: " + id));
+        return ResponseEntity.ok(plan);
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<SubscriptionPlan> update(
             @PathVariable Long id,
             @RequestBody SubscriptionPlan updated) {
 
         SubscriptionPlan plan = planRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Plan not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Subscription plan not found: " + id));
 
-        plan.setMonthlyPrice(updated.getMonthlyPrice());
-        plan.setMaxUsers(updated.getMaxUsers());
-        plan.setMaxProducts(updated.getMaxProducts());
-        plan.setMaxAiRequestsPerMonth(updated.getMaxAiRequestsPerMonth());
+        // Update all fields
+        if (updated.getName() != null) {
+            plan.setName(updated.getName());
+        }
+        if (updated.getMonthlyPrice() != null) {
+            plan.setMonthlyPrice(updated.getMonthlyPrice());
+        }
+        if (updated.getMaxUsers() != null) {
+            plan.setMaxUsers(updated.getMaxUsers());
+        }
+        if (updated.getMaxProducts() != null) {
+            plan.setMaxProducts(updated.getMaxProducts());
+        }
+        if (updated.getMaxAiRequestsPerMonth() != null) {
+            plan.setMaxAiRequestsPerMonth(updated.getMaxAiRequestsPerMonth());
+        }
+        if (updated.getActive() != null) {
+            plan.setActive(updated.getActive());
+        }
 
         return ResponseEntity.ok(planRepository.save(plan));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        SubscriptionPlan plan = planRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Subscription plan not found: " + id));
+        planRepository.delete(plan);
+        return ResponseEntity.noContent().build();
     }
 }
