@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Building2, Mail, Phone, MapPin, Plus } from "lucide-react";
+import { Building2, Mail, Phone, MapPin, Plus, Crown } from "lucide-react";
 
 const businessSchema = z.object({
   name: z.string().min(1, "Business name is required"),
@@ -27,6 +27,8 @@ export default function BusinessesPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [stats, setStats] = useState({
     total: 0,
+    free: 0,
+    pro: 0,
   });
 
   const {
@@ -48,7 +50,15 @@ export default function BusinessesPage() {
       const res = await getBusinessesApi();
       const data = res.data || [];
       setBusinesses(data);
-      setStats({ total: data.length });
+      
+      const freeCount = data.filter((b) => b.subscriptionPlan?.toUpperCase() === "FREE").length;
+      const proCount = data.filter((b) => b.subscriptionPlan?.toUpperCase() === "PRO").length;
+      
+      setStats({
+        total: data.length,
+        free: freeCount,
+        pro: proCount,
+      });
     } catch (error) {
       toast.error("Failed to load businesses");
     } finally {
@@ -120,6 +130,35 @@ export default function BusinessesPage() {
           </div>
         ),
       },
+      {
+        accessorKey: "subscriptionPlan",
+        header: "Subscription Plan",
+        cell: ({ row }) => {
+          const plan = row.original.subscriptionPlan;
+          const status = row.original.subscriptionStatus;
+          if (!plan) {
+            return (
+              <Badge variant="outline" className="flex items-center gap-1 w-fit">
+                <span>No Plan</span>
+              </Badge>
+            );
+          }
+          const isPro = plan.toUpperCase() === "PRO";
+          const isActive = status === "ACTIVE";
+          return (
+            <Badge
+              variant={isPro ? "default" : "secondary"}
+              className={`flex items-center gap-1 w-fit ${isPro ? "bg-primary" : ""}`}
+            >
+              {isPro && <Crown className="h-3 w-3" />}
+              <span>{plan}</span>
+              {!isActive && (
+                <span className="ml-1 text-xs opacity-75">({status})</span>
+              )}
+            </Badge>
+          );
+        },
+      },
     ],
     []
   );
@@ -143,13 +182,32 @@ export default function BusinessesPage() {
           <CardTitle>Overview</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-1">
+          <div className="grid gap-4 md:grid-cols-3">
             <div className="flex items-center justify-between rounded-lg border p-4">
               <div>
                 <p className="text-sm text-muted-foreground">Total Businesses</p>
                 <p className="text-2xl font-bold">{stats.total}</p>
               </div>
               <Building2 className="h-8 w-8 text-primary" />
+            </div>
+            <div className="flex items-center justify-between rounded-lg border p-4">
+              <div>
+                <p className="text-sm text-muted-foreground">Free Plan</p>
+                <p className="text-2xl font-bold">{stats.free}</p>
+              </div>
+              <Badge variant="secondary" className="h-8 px-3 flex items-center">
+                FREE
+              </Badge>
+            </div>
+            <div className="flex items-center justify-between rounded-lg border p-4">
+              <div>
+                <p className="text-sm text-muted-foreground">Pro Plan</p>
+                <p className="text-2xl font-bold">{stats.pro}</p>
+              </div>
+              <Badge variant="default" className="h-8 px-3 flex items-center gap-1 bg-primary">
+                <Crown className="h-3 w-3" />
+                PRO
+              </Badge>
             </div>
           </div>
         </CardContent>

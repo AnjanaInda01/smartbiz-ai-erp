@@ -1,19 +1,262 @@
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Crown, Building2, Brain, BarChart3 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { 
+  Crown, 
+  Building2, 
+  Brain, 
+  BarChart3, 
+  Users, 
+  Package, 
+  UserCheck, 
+  FileText,
+  TrendingUp,
+  Activity
+} from "lucide-react";
 import { Link } from "react-router-dom";
+import { getSystemStatisticsApi } from "@/api/adminApi";
+import { getBusinessesApi } from "@/api/businessApi";
+import { toast } from "sonner";
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
 
 export default function AdminDashboard() {
+  const [stats, setStats] = useState({
+    totalBusinesses: 0,
+    totalUsers: 0,
+    totalProducts: 0,
+    totalCustomers: 0,
+    totalInvoices: 0,
+    totalAiRequests: 0,
+    activeSubscriptions: 0,
+  });
+  const [subscriptionData, setSubscriptionData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const [statsRes, businessesRes] = await Promise.all([
+        getSystemStatisticsApi(),
+        getBusinessesApi().catch(() => ({ data: [] })),
+      ]);
+
+      const statistics = statsRes.data || {};
+      setStats({
+        totalBusinesses: statistics.totalBusinesses || 0,
+        totalUsers: statistics.totalUsers || 0,
+        totalProducts: statistics.totalProducts || 0,
+        totalCustomers: statistics.totalCustomers || 0,
+        totalInvoices: statistics.totalInvoices || 0,
+        totalAiRequests: statistics.totalAiRequests || 0,
+        activeSubscriptions: statistics.activeSubscriptions || 0,
+      });
+
+      // Process subscription data for charts
+      const businesses = businessesRes.data || [];
+      const freeCount = businesses.filter((b) => b.subscriptionPlan?.toUpperCase() === "FREE").length;
+      const proCount = businesses.filter((b) => b.subscriptionPlan?.toUpperCase() === "PRO").length;
+      const noPlanCount = businesses.filter((b) => !b.subscriptionPlan).length;
+
+      setSubscriptionData([
+        { name: "FREE", value: freeCount, color: "#6b7280" },
+        { name: "PRO", value: proCount, color: "#3b82f6" },
+        { name: "No Plan", value: noPlanCount, color: "#e5e7eb" },
+      ]);
+    } catch (error) {
+      toast.error("Failed to load dashboard data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Prepare data for bar chart
+  const metricsData = [
+    { name: "Businesses", value: stats.totalBusinesses },
+    { name: "Users", value: stats.totalUsers },
+    { name: "Products", value: stats.totalProducts },
+    { name: "Customers", value: stats.totalCustomers },
+    { name: "Invoices", value: stats.totalInvoices },
+    { name: "AI Requests", value: stats.totalAiRequests },
+  ];
+
+  const kpiCards = [
+    {
+      title: "Total Businesses",
+      value: stats.totalBusinesses,
+      icon: Building2,
+      color: "text-blue-600",
+      bgColor: "bg-blue-50",
+      link: "/admin/businesses",
+    },
+    {
+      title: "Total Users",
+      value: stats.totalUsers,
+      icon: Users,
+      color: "text-green-600",
+      bgColor: "bg-green-50",
+    },
+    {
+      title: "Active Subscriptions",
+      value: stats.activeSubscriptions,
+      icon: Crown,
+      color: "text-yellow-600",
+      bgColor: "bg-yellow-50",
+      link: "/admin/subscription-plans",
+    },
+    {
+      title: "AI Requests",
+      value: stats.totalAiRequests,
+      icon: Brain,
+      color: "text-purple-600",
+      bgColor: "bg-purple-50",
+      link: "/admin/ai-usage",
+    },
+  ];
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Admin Dashboard</h1>
-        <p className="text-muted-foreground">System administration panel</p>
+        <h1 className="text-4xl font-bold tracking-tight">Admin Dashboard</h1>
+        <p className="text-lg text-muted-foreground mt-2">System administration panel</p>
       </div>
 
+      {/* KPI Cards */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {kpiCards.map((card, index) => {
+          const Icon = card.icon;
+          const content = (
+            <Card className="hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-base font-medium text-muted-foreground">{card.title}</p>
+                    <p className="text-4xl font-bold mt-2">{card.value.toLocaleString()}</p>
+                  </div>
+                  <div className={`${card.bgColor} p-3 rounded-lg`}>
+                    <Icon className={`h-6 w-6 ${card.color}`} />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          );
+
+          return card.link ? (
+            <Link key={index} to={card.link} className="block">
+              {content}
+            </Link>
+          ) : (
+            <div key={index}>{content}</div>
+          );
+        })}
+      </div>
+
+      {/* Charts Row */}
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* Subscription Distribution Pie Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Subscription Plans Distribution</CardTitle>
+            <CardDescription>Breakdown of businesses by subscription plan</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={subscriptionData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, value, percent }) => `${name}: ${value} (${(percent * 100).toFixed(0)}%)`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {subscriptionData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* System Metrics Bar Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle>System Metrics Overview</CardTitle>
+            <CardDescription>Key metrics across the system</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={metricsData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Bar dataKey="value" fill="#3b82f6" />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Additional Stats Grid */}
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-base font-medium">Total Products</CardTitle>
+            <Package className="h-5 w-5 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">{stats.totalProducts.toLocaleString()}</div>
+            <p className="text-sm text-muted-foreground">Products across all businesses</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-base font-medium">Total Customers</CardTitle>
+            <UserCheck className="h-5 w-5 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">{stats.totalCustomers.toLocaleString()}</div>
+            <p className="text-sm text-muted-foreground">Customers across all businesses</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-base font-medium">Total Invoices</CardTitle>
+            <FileText className="h-5 w-5 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">{stats.totalInvoices.toLocaleString()}</div>
+            <p className="text-sm text-muted-foreground">Invoices generated system-wide</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Quick Actions */}
       <Card>
         <CardHeader>
-          <CardTitle>Welcome, Admin</CardTitle>
+          <CardTitle>Quick Actions</CardTitle>
           <CardDescription>System administration and management</CardDescription>
         </CardHeader>
         <CardContent>

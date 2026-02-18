@@ -4,7 +4,7 @@
 
 @layer base {
   html {
-    font-size: 17px;
+    font-size: 20px;
     text-size-adjust: 100%;
   }
 
@@ -69,6 +69,6 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground text-[16px] leading-relaxed md:text-[17px];
+    @apply bg-background text-foreground text-[18px] leading-relaxed md:text-[19px];
   }
 }

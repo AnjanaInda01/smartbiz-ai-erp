@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { TrendingUp, TrendingDown, Package, Users, FileText, DollarSign, Crown, AlertCircle } from "lucide-react";
+import { TrendingUp, TrendingDown, Package, Users, FileText, DollarSign, Crown, AlertCircle, Truck, BarChart3 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { getProductsApi } from "@/api/productApi";
 import { getCustomersApi } from "@/api/customerApi";
@@ -11,9 +11,11 @@ import { getInvoicesApi } from "@/api/invoiceApi";
 import { getBusinessSubscriptionApi } from "@/api/subscriptionApi";
 import { getDashboardReportApi } from "@/api/reportApi";
 import { toast } from "sonner";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { cn } from "@/lib/utils";
 
 export default function OwnerDashboard() {
+  const navigate = useNavigate();
   const [stats, setStats] = useState({
     totalProducts: 0,
     totalCustomers: 0,
@@ -30,6 +32,7 @@ export default function OwnerDashboard() {
   const [loading, setLoading] = useState(true);
   const [salesFilter, setSalesFilter] = useState("month");
   const [profitFilter, setProfitFilter] = useState("month");
+  const [activeSection, setActiveSection] = useState("overview");
 
   useEffect(() => {
     loadData();
@@ -88,12 +91,59 @@ export default function OwnerDashboard() {
     return <div>Loading...</div>;
   }
 
+  const quickActions = [
+    { id: "overview", label: "Overview", icon: TrendingUp, path: null },
+    { id: "products", label: "Products", icon: Package, path: "/owner/products" },
+    { id: "customers", label: "Customers", icon: Users, path: "/owner/customers" },
+    { id: "suppliers", label: "Suppliers", icon: Truck, path: "/owner/suppliers" },
+    { id: "invoices", label: "Invoices", icon: FileText, path: "/owner/invoices" },
+    { id: "reports", label: "Reports", icon: BarChart3, path: "/owner/reports" },
+  ];
+
+  const handleQuickAction = (action) => {
+    if (action.path) {
+      navigate(action.path);
+    } else {
+      setActiveSection(action.id);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">Welcome back! Here's your business overview.</p>
+        <h1 className="text-4xl font-bold tracking-tight">Dashboard</h1>
+        <p className="text-lg text-muted-foreground mt-2">Welcome back! Here's your business overview.</p>
       </div>
+
+      {/* Modern Toggle Quick Actions */}
+      <Card className="border-2 shadow-sm bg-gradient-to-br from-background to-muted/20">
+        <CardContent className="p-5">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="text-lg font-semibold mr-1 text-foreground">Quick Actions:</span>
+            {quickActions.map((action) => {
+              const Icon = action.icon;
+              const isActive = activeSection === action.id;
+              return (
+                <Button
+                  key={action.id}
+                  variant={isActive ? "default" : "outline"}
+                  size="lg"
+                  onClick={() => handleQuickAction(action)}
+                  className={cn(
+                    "h-auto px-5 py-2.5 flex items-center gap-2 transition-all duration-200 font-medium",
+                    isActive 
+                      ? "shadow-md bg-primary text-primary-foreground hover:bg-primary/90 scale-105" 
+                      : "hover:bg-accent hover:border-primary/50 hover:scale-105"
+                  )}
+                >
+                  <Icon className="h-5 w-5" />
+                  <span className="text-base">{action.label}</span>
+                </Button>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Subscription Status */}
       {subscription && (
@@ -371,61 +421,6 @@ export default function OwnerDashboard() {
         </CardContent>
       </Card>
 
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-5">
-            <Button asChild variant="outline" className="h-auto flex-col items-start p-4">
-              <Link to="/owner/products">
-                <Package className="mb-2 h-6 w-6" />
-                <div className="text-left">
-                  <div className="font-semibold">Products</div>
-                  <div className="text-sm text-muted-foreground">Manage inventory</div>
-                </div>
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="h-auto flex-col items-start p-4">
-              <Link to="/owner/customers">
-                <Users className="mb-2 h-6 w-6" />
-                <div className="text-left">
-                  <div className="font-semibold">Customers</div>
-                  <div className="text-sm text-muted-foreground">Manage customers</div>
-                </div>
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="h-auto flex-col items-start p-4">
-              <Link to="/owner/suppliers">
-                <Users className="mb-2 h-6 w-6" />
-                <div className="text-left">
-                  <div className="font-semibold">Suppliers</div>
-                  <div className="text-sm text-muted-foreground">Manage suppliers</div>
-                </div>
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="h-auto flex-col items-start p-4">
-              <Link to="/owner/invoices">
-                <FileText className="mb-2 h-6 w-6" />
-                <div className="text-left">
-                  <div className="font-semibold">Invoices</div>
-                  <div className="text-sm text-muted-foreground">Sales management</div>
-                </div>
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="h-auto flex-col items-start p-4">
-              <Link to="/owner/reports">
-                <FileText className="mb-2 h-6 w-6" />
-                <div className="text-left">
-                  <div className="font-semibold">Reports</div>
-                  <div className="text-sm text-muted-foreground">View analytics</div>
-                </div>
-              </Link>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }
