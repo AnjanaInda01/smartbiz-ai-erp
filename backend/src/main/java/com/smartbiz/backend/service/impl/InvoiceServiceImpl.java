@@ -10,6 +10,7 @@ import com.smartbiz.backend.exception.ResourceNotFoundException;
 import com.smartbiz.backend.repository.*;
 import com.smartbiz.backend.service.CurrentUserService;
 import com.smartbiz.backend.service.InvoiceService;
+import com.smartbiz.backend.service.SubscriptionAssignmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,10 +30,14 @@ public class InvoiceServiceImpl implements InvoiceService {
     private final ProductRepository productRepository;
     private final BusinessRepository businessRepository;
     private final CurrentUserService currentUserService;
+    private final SubscriptionAssignmentService subscriptionAssignmentService;
 
     @Override
     public InvoiceResponse createDraft(InvoiceCreateRequest request) {
         Long businessId = currentUserService.getCurrentBusinessId();
+
+        // Ensure business has a subscription (auto-assign FREE if needed)
+        subscriptionAssignmentService.assignFreePlanToBusinessIfNeeded(businessId);
 
         Business business = businessRepository.findById(businessId)
                 .orElseThrow(() -> new ResourceNotFoundException("Business not found: " + businessId));

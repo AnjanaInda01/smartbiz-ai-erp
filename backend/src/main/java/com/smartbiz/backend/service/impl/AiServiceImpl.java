@@ -9,6 +9,7 @@ import com.smartbiz.backend.repository.AiRequestRepository;
 import com.smartbiz.backend.repository.InvoiceRepository;
 import com.smartbiz.backend.service.AiService;
 import com.smartbiz.backend.service.CurrentUserService;
+import com.smartbiz.backend.service.SubscriptionAssignmentService;
 import com.smartbiz.backend.service.SubscriptionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,7 @@ public class AiServiceImpl implements AiService {
 
     private final AiRequestRepository aiRequestRepository;
     private final SubscriptionService subscriptionService;
+    private final SubscriptionAssignmentService subscriptionAssignmentService;
     private final CurrentUserService currentUserService;
     private final InvoiceRepository invoiceRepository;
 
@@ -96,27 +98,36 @@ public class AiServiceImpl implements AiService {
     // 🔐 AI LIMIT CHECK
     // ==========================
     private void checkAiLimit(Long businessId) {
+        try {
+            LocalDate today = LocalDate.now();
+            LocalDateTime monthStart = today.withDayOfMonth(1).atStartOfDay();
+            LocalDateTime monthEnd = today
+                    .withDayOfMonth(today.lengthOfMonth())
+                    .atTime(23, 59, 59);
 
-        LocalDate today = LocalDate.now();
-        LocalDateTime monthStart = today.withDayOfMonth(1).atStartOfDay();
-        LocalDateTime monthEnd = today
-                .withDayOfMonth(today.lengthOfMonth())
-                .atTime(23, 59, 59);
+            int usedThisMonth =
+                    aiRequestRepository.countByBusiness_IdAndCreatedAtBetween(
+                            businessId,
+                            monthStart,
+                            monthEnd
+                    );
 
-        int usedThisMonth =
-                aiRequestRepository.countByBusiness_IdAndCreatedAtBetween(
-                        businessId,
-                        monthStart,
-                        monthEnd
-                );
+            int maxAi =
+                    subscriptionService
+                            .getCurrentPlan(businessId)
+                            .getMaxAiRequestsPerMonth();
 
-        int maxAi =
-                subscriptionService
-                        .getCurrentPlan(businessId)
-                        .getMaxAiRequestsPerMonth();
-
-        if (usedThisMonth >= maxAi) {
-            throw new BadRequestException("AI usage limit reached for this month");
+            // Check limit only if maxAi is not unlimited (-1)
+            if (maxAi != -1 && usedThisMonth >= maxAi) {
+                throw new BadRequestException("AI usage limit reached for this month. Please upgrade your plan for more AI requests.");
+            }
+        } catch (BadRequestException e) {
+            // Re-throw BadRequestException (limit reached)
+            if (e.getMessage().contains("limit reached")) {
+                throw e;
+            }
+            // If it's a "no subscription" error, the SubscriptionService will handle it
+            throw e;
         }
     }
 

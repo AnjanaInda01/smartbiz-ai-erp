@@ -4,12 +4,14 @@ import com.smartbiz.backend.dto.request.ProductCreateRequest;
 import com.smartbiz.backend.dto.response.ProductResponse;
 import com.smartbiz.backend.entity.Business;
 import com.smartbiz.backend.entity.Product;
+import com.smartbiz.backend.exception.BadRequestException;
 import com.smartbiz.backend.exception.ConflictException;
 import com.smartbiz.backend.exception.ResourceNotFoundException;
 import com.smartbiz.backend.repository.BusinessRepository;
 import com.smartbiz.backend.repository.ProductRepository;
 import com.smartbiz.backend.service.CurrentUserService;
 import com.smartbiz.backend.service.ProductService;
+import com.smartbiz.backend.service.SubscriptionAssignmentService;
 import com.smartbiz.backend.service.SubscriptionService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +27,7 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
     private final CurrentUserService currentUserService;
     private final SubscriptionService subscriptionService;
+    private final SubscriptionAssignmentService subscriptionAssignmentService;
 
     @Override
     public ProductResponse create(ProductCreateRequest request) {
@@ -35,12 +38,33 @@ public class ProductServiceImpl implements ProductService {
         long currentProductCount =
                 productRepository.countByBusiness_Id(businessId);
 
-        int maxProducts =
-                subscriptionService.getCurrentPlan(businessId)
-                        .getMaxProducts();
+        try {
+            int maxProducts =
+                    subscriptionService.getCurrentPlan(businessId)
+                            .getMaxProducts();
 
-        if (currentProductCount >= maxProducts) {
-            throw new ConflictException("Product limit reached for your subscription plan");
+            // Check limit only if maxProducts is not unlimited (-1)
+            if (maxProducts != -1 && currentProductCount >= maxProducts) {
+                throw new ConflictException("Product limit reached for your subscription plan. Please upgrade your plan to add more products.");
+            }
+        } catch (Exception e) {
+            // If no subscription found, try to assign FREE plan automatically
+            if (e instanceof BadRequestException && e.getMessage().contains("No active subscription")) {
+                try {
+                    subscriptionAssignmentService.assignFreePlanToBusinessIfNeeded(businessId);
+                    // Retry getting the plan after assignment
+                    int maxProducts = subscriptionService.getCurrentPlan(businessId).getMaxProducts();
+                    if (maxProducts != -1 && currentProductCount >= maxProducts) {
+                        throw new ConflictException("Product limit reached for your subscription plan. Please upgrade your plan to add more products.");
+                    }
+                } catch (Exception retryException) {
+                    // If assignment fails, allow creation anyway (graceful degradation)
+                    // This handles edge cases where FREE plan doesn't exist yet
+                }
+            } else if (e instanceof ConflictException) {
+                throw e;
+            }
+            // Otherwise, continue without limit check (for businesses without subscription)
         }
 
         if (request.getSku() != null && !request.getSku().isBlank()) {

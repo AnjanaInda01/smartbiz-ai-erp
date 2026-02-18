@@ -11,6 +11,7 @@ import com.smartbiz.backend.exception.ResourceNotFoundException;
 import com.smartbiz.backend.repository.BusinessRepository;
 import com.smartbiz.backend.repository.CustomerRepository;
 import com.smartbiz.backend.service.CurrentUserService;
+import com.smartbiz.backend.service.SubscriptionAssignmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,10 +25,14 @@ public class CustomerServiceImpl implements CustomerService {
     private final CustomerRepository customerRepository;
     private final BusinessRepository businessRepository;
     private final CurrentUserService currentUserService;
+    private final SubscriptionAssignmentService subscriptionAssignmentService;
 
     @Override
     public CustomerResponse create(CustomerCreateRequest request) {
         Long businessId = currentUserService.getCurrentBusinessId();
+
+        // Ensure business has a subscription (auto-assign FREE if needed)
+        subscriptionAssignmentService.assignFreePlanToBusinessIfNeeded(businessId);
 
         if (customerRepository.existsByBusiness_IdAndNameIgnoreCaseAndActiveTrue(businessId, request.getName())) {
             throw new ConflictException("Customer name already exists");

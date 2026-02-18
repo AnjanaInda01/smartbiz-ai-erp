@@ -10,6 +10,7 @@ import com.smartbiz.backend.exception.ResourceNotFoundException;
 import com.smartbiz.backend.repository.BusinessRepository;
 import com.smartbiz.backend.repository.SupplierRepository;
 import com.smartbiz.backend.service.CurrentUserService;
+import com.smartbiz.backend.service.SubscriptionAssignmentService;
 import com.smartbiz.backend.service.SupplierService;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,10 +27,14 @@ public class SupplierServiceImpl implements SupplierService {
     private final SupplierRepository supplierRepository;
     private final BusinessRepository businessRepository;
     private final CurrentUserService currentUserService;
+    private final SubscriptionAssignmentService subscriptionAssignmentService;
 
     @Override
     public SupplierResponse create(SupplierCreateRequest request) {
         Long businessId = currentUserService.getCurrentBusinessId();
+
+        // Ensure business has a subscription (auto-assign FREE if needed)
+        subscriptionAssignmentService.assignFreePlanToBusinessIfNeeded(businessId);
 
         // Prevent duplicate supplier name within same business (active only)
         if (supplierRepository.existsByBusiness_IdAndNameIgnoreCaseAndActiveTrue(businessId, request.getName())) {
