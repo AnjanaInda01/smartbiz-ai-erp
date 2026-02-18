@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/auth/AuthProvider";
+import { useTheme } from "@/contexts/ThemeProvider";
 import {
   LayoutDashboard,
   Package,
@@ -22,6 +23,8 @@ import {
   CheckCircle2,
   AlertCircle,
   Info,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -77,6 +80,7 @@ export default function DashboardLayout({ children }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
 
   const role = normalizeRole(user?.role || "");
   const items = sidebarItems[role.toLowerCase()] || [];
@@ -139,8 +143,10 @@ export default function DashboardLayout({ children }) {
 
   const SidebarContent = () => (
     <div className="flex h-full flex-col">
-      <div className="flex h-16 items-center border-b px-6">
-        <h2 className="text-xl font-semibold">SmartBiz ERP</h2>
+      <div className="flex h-16 items-center border-b px-6 bg-gradient-to-r from-primary/10 to-transparent dark:from-transparent dark:to-transparent">
+        <h2 className="text-xl font-semibold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+          SmartBiz ERP
+        </h2>
       </div>
       <nav className="flex-1 space-y-1 px-3 py-4">
         {items.map((item) => {
@@ -152,14 +158,20 @@ export default function DashboardLayout({ children }) {
               to={item.path}
               onClick={() => setSidebarOpen(false)}
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-base font-medium transition-colors",
+                "flex items-center gap-3 rounded-lg px-3 py-2 text-base font-medium transition-all duration-300 group relative",
                 isActive
-                  ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                  ? "bg-primary text-primary-foreground shadow-md scale-[1.02]"
+                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:scale-[1.01]"
               )}
             >
-              <Icon className="h-5 w-5" />
-              {item.label}
+              <Icon className={cn(
+                "h-5 w-5 transition-transform duration-300",
+                isActive ? "scale-110" : "group-hover:scale-110"
+              )} />
+              <span className="relative">{item.label}</span>
+              {isActive && (
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-primary-foreground rounded-r-full" />
+              )}
             </Link>
           );
         })}
@@ -168,9 +180,9 @@ export default function DashboardLayout({ children }) {
   );
 
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex h-screen bg-background transition-colors duration-300">
       {/* Desktop Sidebar */}
-      <aside className="hidden w-64 border-r bg-card lg:block">
+      <aside className="hidden w-64 border-r bg-gradient-to-b from-primary/5 via-card to-card dark:from-card dark:via-card dark:to-card lg:block transition-colors duration-300 shadow-sm">
         <SidebarContent />
       </aside>
 
@@ -189,7 +201,7 @@ export default function DashboardLayout({ children }) {
       {/* Main Content */}
       <div className="flex flex-1 flex-col overflow-hidden">
         {/* Topbar */}
-        <header className="flex h-16 items-center gap-4 border-b bg-card px-4 lg:px-6">
+        <header className="flex h-16 items-center gap-4 border-b bg-card px-4 lg:px-6 transition-colors duration-300 shadow-sm backdrop-blur-sm bg-card/95">
           <Button
             variant="ghost"
             size="icon"
@@ -236,13 +248,28 @@ export default function DashboardLayout({ children }) {
             </div>
           </div>
 
-          <div className="flex items-center gap-4 flex-shrink-0">
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {/* Theme Toggle */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleTheme}
+              className="relative flex-shrink-0 transition-all duration-300 hover:scale-110"
+              aria-label="Toggle theme"
+            >
+              {theme === "dark" ? (
+                <Sun className="h-5 w-5 transition-all duration-300 rotate-0" />
+              ) : (
+                <Moon className="h-5 w-5 transition-all duration-300 rotate-0" />
+              )}
+            </Button>
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="relative flex-shrink-0">
+                <Button variant="ghost" size="icon" className="relative flex-shrink-0 transition-all duration-300 hover:scale-110">
                   <Bell className="h-5 w-5" />
                   {unreadCount > 0 && (
-                    <span className="absolute top-0 right-0 h-5 w-5 rounded-full bg-destructive text-destructive-foreground text-xs flex items-center justify-center font-medium">
+                    <span className="absolute top-0 right-0 h-5 w-5 rounded-full bg-destructive text-destructive-foreground text-xs flex items-center justify-center font-medium animate-pulse">
                       {unreadCount > 9 ? "9+" : unreadCount}
                     </span>
                   )}
@@ -346,8 +373,10 @@ export default function DashboardLayout({ children }) {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 overflow-y-auto p-4 lg:p-6">
-          {children}
+        <main className="flex-1 overflow-y-auto p-4 lg:p-6 animate-fade-in">
+          <div className="animate-slide-up">
+            {children}
+          </div>
         </main>
       </div>
     </div>

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import { 
   Crown, 
   Building2, 
@@ -129,26 +130,48 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-4xl font-bold tracking-tight">Admin Dashboard</h1>
-        <p className="text-lg text-muted-foreground mt-2">System administration panel</p>
+    <div className="space-y-6 animate-fade-in">
+      <div className="animate-slide-down">
+        <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+          Admin Dashboard
+        </h1>
+        <p className="text-lg text-muted-foreground mt-2">System administration panel - Manage all businesses</p>
       </div>
 
       {/* KPI Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {kpiCards.map((card, index) => {
           const Icon = card.icon;
+          const borderColors = [
+            "border-l-primary/50 hover:border-l-primary",
+            "border-l-chart-2/50 hover:border-l-chart-2",
+            "border-l-chart-3/50 hover:border-l-chart-3",
+            "border-l-chart-4/50 hover:border-l-chart-4",
+          ];
           const content = (
-            <Card className="hover:shadow-md transition-shadow">
+            <Card className={cn(
+              "group hover:shadow-premium transition-premium animate-slide-up border-l-4",
+              borderColors[index % borderColors.length]
+            )} style={{ animationDelay: `${index * 100}ms` }}>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-base font-medium text-muted-foreground">{card.title}</p>
-                    <p className="text-4xl font-bold mt-2">{card.value.toLocaleString()}</p>
+                    <p className={cn(
+                      "text-4xl font-bold mt-2 bg-gradient-to-r bg-clip-text text-transparent",
+                      index === 0 && "from-primary to-primary/60",
+                      index === 1 && "from-chart-2 to-chart-2/60",
+                      index === 2 && "from-chart-3 to-chart-3/60",
+                      index === 3 && "from-chart-4 to-chart-4/60"
+                    )}>
+                      {card.value.toLocaleString()}
+                    </p>
                   </div>
-                  <div className={`${card.bgColor} p-3 rounded-lg`}>
-                    <Icon className={`h-6 w-6 ${card.color}`} />
+                  <div className={cn(
+                    "p-3 rounded-lg transition-all duration-300 group-hover:scale-110",
+                    card.bgColor
+                  )}>
+                    <Icon className={cn("h-6 w-6 transition-transform group-hover:rotate-12", card.color)} />
                   </div>
                 </div>
               </CardContent>
@@ -168,12 +191,12 @@ export default function AdminDashboard() {
       {/* Charts Row */}
       <div className="grid gap-6 md:grid-cols-2">
         {/* Subscription Distribution Pie Chart */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Subscription Plans Distribution</CardTitle>
-            <CardDescription>Breakdown of businesses by subscription plan</CardDescription>
+        <Card className="shadow-premium transition-premium animate-slide-up hover:shadow-xl">
+          <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent border-b">
+            <CardTitle className="text-2xl font-bold">Subscription Plans Distribution</CardTitle>
+            <CardDescription className="text-base mt-1">Breakdown of businesses by subscription plan</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
                 <Pie
@@ -190,27 +213,39 @@ export default function AdminDashboard() {
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip />
+                <Tooltip 
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--card))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "var(--radius)",
+                  }}
+                />
               </PieChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
         {/* System Metrics Bar Chart */}
-        <Card>
-          <CardHeader>
-            <CardTitle>System Metrics Overview</CardTitle>
-            <CardDescription>Key metrics across the system</CardDescription>
+        <Card className="shadow-premium transition-premium animate-slide-up hover:shadow-xl">
+          <CardHeader className="bg-gradient-to-r from-chart-2/5 to-transparent border-b">
+            <CardTitle className="text-2xl font-bold">System Metrics Overview</CardTitle>
+            <CardDescription className="text-base mt-1">Key metrics across the system</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={metricsData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+                <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" />
+                <YAxis stroke="hsl(var(--muted-foreground))" />
+                <Tooltip 
+                  contentStyle={{
+                    backgroundColor: "hsl(var(--card))",
+                    border: "1px solid hsl(var(--border))",
+                    borderRadius: "var(--radius)",
+                  }}
+                />
                 <Legend />
-                <Bar dataKey="value" fill="#3b82f6" />
+                <Bar dataKey="value" fill="hsl(var(--primary))" radius={[8, 8, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>

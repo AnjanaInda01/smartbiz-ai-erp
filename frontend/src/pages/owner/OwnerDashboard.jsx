@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { TrendingUp, TrendingDown, Package, Users, FileText, DollarSign, Crown, AlertCircle, Truck, BarChart3 } from "lucide-react";
+import { TrendingUp, TrendingDown, Package, Users, FileText, DollarSign, Crown, AlertCircle, Truck, BarChart3, Building2 } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { getProductsApi } from "@/api/productApi";
 import { getCustomersApi } from "@/api/customerApi";
@@ -13,9 +13,12 @@ import { getDashboardReportApi } from "@/api/reportApi";
 import { toast } from "sonner";
 import { Link, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/auth/AuthProvider";
 
 export default function OwnerDashboard() {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [businessName, setBusinessName] = useState("");
   const [stats, setStats] = useState({
     totalProducts: 0,
     totalCustomers: 0,
@@ -36,7 +39,13 @@ export default function OwnerDashboard() {
 
   useEffect(() => {
     loadData();
-  }, []);
+    // Get business name from user data
+    if (user?.businessName) {
+      setBusinessName(user.businessName);
+    } else if (user?.business?.name) {
+      setBusinessName(user.business.name);
+    }
+  }, [user]);
 
   const loadData = async () => {
     try {
@@ -109,18 +118,30 @@ export default function OwnerDashboard() {
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-4xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-lg text-muted-foreground mt-2">Welcome back! Here's your business overview.</p>
+    <div className="space-y-6 animate-fade-in">
+      <div className="animate-slide-down">
+        <div className="flex items-center gap-3 mb-2">
+          <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+            Dashboard
+          </h1>
+          {businessName && (
+            <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 animate-scale-in">
+              <Building2 className="h-4 w-4 text-primary" />
+              <span className="text-base font-semibold text-primary">{businessName}</span>
+            </div>
+          )}
+        </div>
+        <p className="text-lg text-muted-foreground mt-2">
+          {businessName ? `Welcome back to ${businessName}! Here's your business overview.` : "Welcome back! Here's your business overview."}
+        </p>
       </div>
 
       {/* Modern Toggle Quick Actions */}
-      <Card className="border-2 shadow-sm bg-gradient-to-br from-background to-muted/20">
+      <Card className="border-2 shadow-premium bg-gradient-to-br from-card via-card to-muted/30 backdrop-blur-sm animate-slide-up">
         <CardContent className="p-5">
           <div className="flex flex-wrap items-center gap-3">
             <span className="text-lg font-semibold mr-1 text-foreground">Quick Actions:</span>
-            {quickActions.map((action) => {
+            {quickActions.map((action, index) => {
               const Icon = action.icon;
               const isActive = activeSection === action.id;
               return (
@@ -130,13 +151,18 @@ export default function OwnerDashboard() {
                   size="lg"
                   onClick={() => handleQuickAction(action)}
                   className={cn(
-                    "h-auto px-5 py-2.5 flex items-center gap-2 transition-all duration-200 font-medium",
+                    "h-auto px-5 py-2.5 flex items-center gap-2 transition-premium font-medium animate-scale-in",
+                    "hover:shadow-lg",
                     isActive 
-                      ? "shadow-md bg-primary text-primary-foreground hover:bg-primary/90 scale-105" 
-                      : "hover:bg-accent hover:border-primary/50 hover:scale-105"
+                      ? "shadow-glow bg-gradient-premium text-primary-foreground hover:opacity-90 scale-105" 
+                      : "hover:bg-accent hover:border-primary/50 hover:scale-105 hover:shadow-md"
                   )}
+                  style={{ animationDelay: `${index * 50}ms` }}
                 >
-                  <Icon className="h-5 w-5" />
+                  <Icon className={cn(
+                    "h-5 w-5 transition-transform duration-300",
+                    isActive && "animate-pulse-slow"
+                  )} />
                   <span className="text-base">{action.label}</span>
                 </Button>
               );
@@ -147,18 +173,31 @@ export default function OwnerDashboard() {
 
       {/* Subscription Status */}
       {subscription && (
-        <Card className={subscription.status === "ACTIVE" ? "border-primary" : "border-destructive"}>
+        <Card className={cn(
+          "transition-premium animate-slide-up shadow-premium",
+          subscription.status === "ACTIVE" 
+            ? "border-primary/50 bg-gradient-to-br from-primary/5 via-card to-card" 
+            : "border-destructive/50 bg-gradient-to-br from-destructive/5 via-card to-card"
+        )}>
           <CardHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Crown className="h-5 w-5 text-primary" />
+                <div className={cn(
+                  "p-2 rounded-lg transition-colors",
+                  subscription.status === "ACTIVE" ? "bg-primary/10" : "bg-destructive/10"
+                )}>
+                  <Crown className={cn(
+                    "h-5 w-5 transition-transform hover:scale-110",
+                    subscription.status === "ACTIVE" ? "text-primary" : "text-destructive"
+                  )} />
+                </div>
                 <CardTitle>Subscription Status</CardTitle>
               </div>
-              <Badge variant={subscription.status === "ACTIVE" ? "default" : "destructive"}>
+              <Badge variant={subscription.status === "ACTIVE" ? "default" : "destructive"} className="animate-scale-in">
                 {subscription.status}
               </Badge>
             </div>
-            <CardDescription>
+            <CardDescription className="mt-2">
               {subscription.status === "ACTIVE" 
                 ? `Current plan: ${subscription.planName || "N/A"} - Expires ${new Date(subscription.endDate).toLocaleDateString()}`
                 : "No active subscription. Please subscribe to continue using the service."}
@@ -166,7 +205,7 @@ export default function OwnerDashboard() {
           </CardHeader>
           {subscription.status !== "ACTIVE" && (
             <CardContent>
-              <Button asChild>
+              <Button asChild className="transition-premium hover:scale-105">
                 <Link to="/owner/subscription">
                   View Plans
                 </Link>
@@ -178,14 +217,18 @@ export default function OwnerDashboard() {
 
       {/* KPI Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+        <Card className="group hover:shadow-premium transition-premium animate-slide-up border-l-4 border-l-primary/50 hover:border-l-primary">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Products</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
+            <div className="p-2 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
+              <Package className="h-4 w-4 text-primary group-hover:scale-110 transition-transform" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalProducts}</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+              {stats.totalProducts}
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">
               <Badge variant="secondary" className="mr-1">
                 <TrendingUp className="h-3 w-3 mr-1" />
                 Active
@@ -194,14 +237,18 @@ export default function OwnerDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="group hover:shadow-premium transition-premium animate-slide-up border-l-4 border-l-chart-2/50 hover:border-l-chart-2" style={{ animationDelay: "100ms" }}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Customers</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <div className="p-2 rounded-lg bg-chart-2/10 group-hover:bg-chart-2/20 transition-colors">
+              <Users className="h-4 w-4 text-chart-2 group-hover:scale-110 transition-transform" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalCustomers}</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-3xl font-bold bg-gradient-to-r from-chart-2 to-chart-2/60 bg-clip-text text-transparent">
+              {stats.totalCustomers}
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">
               <Badge variant="secondary" className="mr-1">
                 Active customers
               </Badge>
@@ -209,29 +256,35 @@ export default function OwnerDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="group hover:shadow-premium transition-premium animate-slide-up border-l-4 border-l-chart-3/50 hover:border-l-chart-3" style={{ animationDelay: "200ms" }}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Invoices</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
+            <div className="p-2 rounded-lg bg-chart-3/10 group-hover:bg-chart-3/20 transition-colors">
+              <FileText className="h-4 w-4 text-chart-3 group-hover:scale-110 transition-transform" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalInvoices}</div>
-            <p className="text-xs text-muted-foreground">
+            <div className="text-3xl font-bold bg-gradient-to-r from-chart-3 to-chart-3/60 bg-clip-text text-transparent">
+              {stats.totalInvoices}
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">
               All time invoices
             </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="group hover:shadow-premium transition-premium animate-slide-up border-l-4 border-l-chart-4/50 hover:border-l-chart-4" style={{ animationDelay: "300ms" }}>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Month's Profit</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <div className="p-2 rounded-lg bg-chart-4/10 group-hover:bg-chart-4/20 transition-colors">
+              <DollarSign className="h-4 w-4 text-chart-4 group-hover:scale-110 transition-transform" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-3xl font-bold bg-gradient-to-r from-chart-4 to-chart-4/60 bg-clip-text text-transparent">
               ${stats.monthProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground mt-2">
               <Badge variant="secondary" className="mr-1">
                 <TrendingUp className="h-3 w-3 mr-1" />
                 This month
@@ -242,15 +295,15 @@ export default function OwnerDashboard() {
       </div>
 
       {/* Sales Section */}
-      <Card>
-        <CardHeader>
+      <Card className="shadow-premium transition-premium animate-slide-up hover:shadow-xl">
+        <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent border-b">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Sales</CardTitle>
-              <CardDescription>Track your sales performance</CardDescription>
+              <CardTitle className="text-2xl font-bold">Sales</CardTitle>
+              <CardDescription className="text-base mt-1">Track your sales performance</CardDescription>
             </div>
             <Select value={salesFilter} onValueChange={setSalesFilter}>
-              <SelectTrigger className="w-[140px]">
+              <SelectTrigger className="w-[140px] transition-premium hover:scale-105">
                 <SelectValue placeholder="Select period" />
               </SelectTrigger>
               <SelectContent>
@@ -303,15 +356,15 @@ export default function OwnerDashboard() {
       </Card>
 
       {/* Profit Section */}
-      <Card>
-        <CardHeader>
+      <Card className="shadow-premium transition-premium animate-slide-up hover:shadow-xl">
+        <CardHeader className="bg-gradient-to-r from-chart-2/5 to-transparent border-b">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Profit</CardTitle>
-              <CardDescription>Track your profit performance</CardDescription>
+              <CardTitle className="text-2xl font-bold">Profit</CardTitle>
+              <CardDescription className="text-base mt-1">Track your profit performance</CardDescription>
             </div>
             <Select value={profitFilter} onValueChange={setProfitFilter}>
-              <SelectTrigger className="w-[140px]">
+              <SelectTrigger className="w-[140px] transition-premium hover:scale-105">
                 <SelectValue placeholder="Select period" />
               </SelectTrigger>
               <SelectContent>
@@ -402,20 +455,33 @@ export default function OwnerDashboard() {
       )}
 
       {/* Sales Trend Chart */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Sales Trend</CardTitle>
-          <CardDescription>Last 7 days sales performance</CardDescription>
+      <Card className="shadow-premium transition-premium animate-slide-up hover:shadow-xl">
+        <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent border-b">
+          <CardTitle className="text-2xl font-bold">Sales Trend</CardTitle>
+          <CardDescription className="text-base mt-1">Last 7 days sales performance</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" />
-              <YAxis />
-              <Tooltip />
+              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
+              <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" />
+              <YAxis stroke="hsl(var(--muted-foreground))" />
+              <Tooltip 
+                contentStyle={{
+                  backgroundColor: "hsl(var(--card))",
+                  border: "1px solid hsl(var(--border))",
+                  borderRadius: "var(--radius)",
+                }}
+              />
               <Legend />
-              <Line type="monotone" dataKey="sales" stroke="hsl(var(--primary))" strokeWidth={2} />
+              <Line 
+                type="monotone" 
+                dataKey="sales" 
+                stroke="hsl(var(--primary))" 
+                strokeWidth={3}
+                dot={{ fill: "hsl(var(--primary))", r: 4 }}
+                activeDot={{ r: 6 }}
+              />
             </LineChart>
           </ResponsiveContainer>
         </CardContent>
