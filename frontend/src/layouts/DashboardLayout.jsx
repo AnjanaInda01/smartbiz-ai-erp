@@ -25,6 +25,8 @@ import {
   Info,
   Sun,
   Moon,
+  UserPlus,
+  Mail,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -56,12 +58,18 @@ const sidebarItems = {
     { icon: ShoppingCart, label: "Purchases", path: "/owner/purchases" },
     { icon: BarChart3, label: "Reports", path: "/owner/reports" },
     { icon: Brain, label: "AI Insights", path: "/owner/ai-insights" },
+    { icon: UserPlus, label: "Staff Management", path: "/owner/staff" },
     { icon: Crown, label: "Subscription", path: "/owner/subscription" },
   ],
   staff: [
     { icon: LayoutDashboard, label: "Dashboard", path: "/staff" },
-    { icon: Package, label: "Products", path: "/staff/products" },
+    { icon: Package, label: "Inventory", path: "/staff/products" },
+    { icon: Users, label: "Customers", path: "/staff/customers" },
+    { icon: Truck, label: "Suppliers", path: "/staff/suppliers" },
+    { icon: ShoppingCart, label: "Purchases", path: "/staff/purchases" },
+    { icon: TrendingUp, label: "Sales", path: "/staff/sales" },
     { icon: FileText, label: "Invoices", path: "/staff/invoices" },
+    { icon: Mail, label: "AI Content", path: "/staff/ai-content" },
   ],
   admin: [
     { icon: LayoutDashboard, label: "Dashboard", path: "/admin" },

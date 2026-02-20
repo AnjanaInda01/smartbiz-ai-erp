@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { getProductsApi, createProductApi, updateProductApi, deleteProductApi } from "@/api/productApi";
+import { getStaffApi, createStaffApi, updateStaffApi, deleteStaffApi } from "@/api/staffApi";
 import PageHeader from "@/components/PageHeader";
 import DataTable from "@/components/DataTable";
 import { Button } from "@/components/ui/button";
@@ -12,22 +12,21 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Users } from "lucide-react";
 
-const productSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  sku: z.string().optional(),
-  unitPrice: z.coerce.number().min(0, "Price must be >= 0"),
-  costPrice: z.coerce.number().min(0, "Cost price must be >= 0").optional(),
-  stockQty: z.coerce.number().min(0, "Stock must be >= 0"),
+const staffSchema = z.object({
+  name: z.string().min(1, "Name is required").max(120, "Name must be max 120 characters"),
+  email: z.string().email("Invalid email").max(150, "Email must be max 150 characters"),
+  password: z.string().min(6, "Password must be at least 6 characters").optional().or(z.literal("")),
+  phone: z.string().max(30, "Phone must be max 30 characters").optional().or(z.literal("")),
 });
 
-export default function ProductsPage() {
-  const [products, setProducts] = useState([]);
+export default function StaffManagementPage() {
+  const [staff, setStaff] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [selectedStaff, setSelectedStaff] = useState(null);
 
   const {
     register,
@@ -35,68 +34,70 @@ export default function ProductsPage() {
     reset,
     formState: { errors },
   } = useForm({
-    resolver: zodResolver(productSchema),
+    resolver: zodResolver(staffSchema),
   });
 
   useEffect(() => {
-    loadProducts();
+    loadStaff();
   }, []);
 
-  const loadProducts = async () => {
+  const loadStaff = async () => {
     try {
       setLoading(true);
-      const res = await getProductsApi();
-      setProducts(res.data || []);
+      const res = await getStaffApi();
+      setStaff(res.data || []);
     } catch (error) {
-      toast.error("Failed to load products");
+      toast.error("Failed to load staff members");
     } finally {
       setLoading(false);
     }
   };
 
   const handleCreate = () => {
-    setSelectedProduct(null);
+    setSelectedStaff(null);
     reset();
     setDialogOpen(true);
   };
 
-  const handleEdit = (product) => {
-    setSelectedProduct(product);
+  const handleEdit = (staffMember) => {
+    setSelectedStaff(staffMember);
     reset({
-      name: product.name,
-      sku: product.sku || "",
-      unitPrice: product.unitPrice,
-      costPrice: product.costPrice || 0,
-      stockQty: product.stockQty,
+      name: staffMember.name,
+      email: staffMember.email,
+      phone: staffMember.phone || "",
+      password: "", // Don't pre-fill password
     });
     setDialogOpen(true);
   };
 
-  const handleDelete = (product) => {
-    setSelectedProduct(product);
+  const handleDelete = (staffMember) => {
+    setSelectedStaff(staffMember);
     setDeleteDialogOpen(true);
   };
 
   const onSubmit = async (data) => {
     try {
-      const productData = {
+      const staffData = {
         name: data.name,
-        sku: data.sku || null,
-        unitPrice: data.unitPrice,
-        stockQty: data.stockQty,
-        ...(data.costPrice && data.costPrice > 0 ? { costPrice: data.costPrice } : {}),
+        email: data.email,
+        phone: data.phone || null,
+        ...(data.password && data.password.length > 0 ? { password: data.password } : {}),
       };
 
-      if (selectedProduct) {
-        await updateProductApi(selectedProduct.id, productData);
-        toast.success("Product updated successfully");
+      if (selectedStaff) {
+        await updateStaffApi(selectedStaff.id, staffData);
+        toast.success("Staff member updated successfully");
       } else {
-        await createProductApi(productData);
-        toast.success("Product created successfully");
+        if (!data.password || data.password.length < 6) {
+          toast.error("Password is required for new staff members");
+          return;
+        }
+        await createStaffApi(staffData);
+        toast.success("Staff member created successfully");
       }
       setDialogOpen(false);
       reset();
-      loadProducts();
+      loadStaff();
     } catch (error) {
       const message = error.response?.data?.message || "Operation failed";
       toast.error(message);
@@ -105,12 +106,12 @@ export default function ProductsPage() {
 
   const onDelete = async () => {
     try {
-      await deleteProductApi(selectedProduct.id);
-      toast.success("Product deleted successfully");
+      await deleteStaffApi(selectedStaff.id);
+      toast.success("Staff member deleted successfully");
       setDeleteDialogOpen(false);
-      loadProducts();
+      loadStaff();
     } catch (error) {
-      toast.error("Failed to delete product");
+      toast.error("Failed to delete staff member");
     }
   };
 
@@ -119,28 +120,21 @@ export default function ProductsPage() {
       {
         accessorKey: "name",
         header: "Name",
-      },
-      {
-        accessorKey: "sku",
-        header: "SKU",
-      },
-      {
-        accessorKey: "unitPrice",
-        header: "Price",
-        cell: ({ row }) => `$${row.original.unitPrice?.toFixed(2) || 0}`,
-      },
-      {
-        accessorKey: "stockQty",
-        header: "Stock",
-      },
-      {
-        accessorKey: "active",
-        header: "Status",
         cell: ({ row }) => (
-          <Badge variant={row.original.active ? "default" : "secondary"}>
-            {row.original.active ? "Active" : "Inactive"}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Users className="h-4 w-4 text-primary" />
+            <span className="font-medium">{row.original.name}</span>
+          </div>
         ),
+      },
+      {
+        accessorKey: "email",
+        header: "Email",
+      },
+      {
+        accessorKey: "phone",
+        header: "Phone",
+        cell: ({ row }) => row.original.phone || "-",
       },
       {
         id: "actions",
@@ -171,12 +165,12 @@ export default function ProductsPage() {
   return (
     <div className="space-y-6 animate-fade-in">
       <PageHeader
-        title="Inventory Management"
-        description="Manage your product catalog and inventory"
+        title="Staff Management"
+        description="Manage your staff members and their access"
         action={
           <Button onClick={handleCreate} className="animate-scale-in shadow-md hover:shadow-lg">
             <Plus className="mr-2 h-4 w-4" />
-            Add Product
+            Add Staff Member
           </Button>
         }
       />
@@ -187,20 +181,20 @@ export default function ProductsPage() {
         </div>
       ) : (
         <div className="animate-slide-up">
-          <DataTable columns={columns} data={products} searchKey="name" />
+          <DataTable columns={columns} data={staff} searchKey="name" />
         </div>
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="animate-scale-in">
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle>{selectedProduct ? "Edit Product" : "Create Product"}</DialogTitle>
-            <DialogDescription className="text-base">
-              {selectedProduct ? "Update product information" : "Add a new product to your catalog"}
+            <DialogTitle>{selectedStaff ? "Edit Staff Member" : "Add Staff Member"}</DialogTitle>
+            <DialogDescription>
+              {selectedStaff ? "Update staff member information" : "Add a new staff member to your business"}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit(onSubmit)}>
-            <div className="grid gap-4 py-4 animate-fade-in">
+            <div className="grid gap-4 py-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Name *</Label>
                 <Input id="name" {...register("name")} />
@@ -209,28 +203,26 @@ export default function ProductsPage() {
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="sku">SKU</Label>
-                <Input id="sku" {...register("sku")} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="unitPrice">Unit Price (Selling Price) *</Label>
-                <Input id="unitPrice" type="number" step="0.01" {...register("unitPrice")} />
-                {errors.unitPrice && (
-                  <p className="text-sm text-destructive">{errors.unitPrice.message}</p>
+                <Label htmlFor="email">Email *</Label>
+                <Input id="email" type="email" {...register("email")} />
+                {errors.email && (
+                  <p className="text-sm text-destructive">{errors.email.message}</p>
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="costPrice">Cost Price (Purchase Price)</Label>
-                <Input id="costPrice" type="number" step="0.01" {...register("costPrice")} />
-                {errors.costPrice && (
-                  <p className="text-sm text-destructive">{errors.costPrice.message}</p>
+                <Label htmlFor="password">
+                  {selectedStaff ? "New Password (leave blank to keep current)" : "Password *"}
+                </Label>
+                <Input id="password" type="password" {...register("password")} />
+                {errors.password && (
+                  <p className="text-sm text-destructive">{errors.password.message}</p>
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="stockQty">Stock Quantity *</Label>
-                <Input id="stockQty" type="number" {...register("stockQty")} />
-                {errors.stockQty && (
-                  <p className="text-sm text-destructive">{errors.stockQty.message}</p>
+                <Label htmlFor="phone">Phone</Label>
+                <Input id="phone" {...register("phone")} />
+                {errors.phone && (
+                  <p className="text-sm text-destructive">{errors.phone.message}</p>
                 )}
               </div>
             </div>
@@ -238,7 +230,7 @@ export default function ProductsPage() {
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit">Save</Button>
+              <Button type="submit">{selectedStaff ? "Update" : "Create"}</Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -248,8 +240,8 @@ export default function ProductsPage() {
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         onConfirm={onDelete}
-        title="Delete Product"
-        description={`Are you sure you want to delete "${selectedProduct?.name}"? This action cannot be undone.`}
+        title="Delete Staff Member"
+        description={`Are you sure you want to delete "${selectedStaff?.name}"? This action cannot be undone.`}
       />
     </div>
   );

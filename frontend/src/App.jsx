@@ -14,9 +14,16 @@ import OwnerCreatePurchasePage from "./pages/owner/CreatePurchasePage";
 import OwnerReportsPage from "./pages/owner/ReportsPage";
 import OwnerAiInsightsPage from "./pages/owner/AiInsightsPage";
 import OwnerSalesPage from "./pages/owner/SalesPage";
+import OwnerStaffManagementPage from "./pages/owner/StaffManagementPage";
 import StaffProductsPage from "./pages/staff/ProductsPage";
+import StaffCustomersPage from "./pages/staff/CustomersPage";
+import StaffSuppliersPage from "./pages/staff/SuppliersPage";
+import StaffPurchasesPage from "./pages/staff/PurchasesPage";
+import StaffCreatePurchasePage from "./pages/staff/CreatePurchasePage";
+import StaffSalesPage from "./pages/staff/SalesPage";
 import StaffInvoicesPage from "./pages/staff/InvoicesPage";
 import StaffInvoiceDetailPage from "./pages/staff/InvoiceDetailPage";
+import StaffAiContentPage from "./pages/staff/AiContentPage";
 import AdminSubscriptionPlansPage from "./pages/admin/SubscriptionPlansPage";
 import AdminBusinessesPage from "./pages/admin/BusinessesPage";
 import AdminAiUsagePage from "./pages/admin/AiUsagePage";
@@ -163,6 +170,16 @@ export default function App() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/owner/staff"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <OwnerStaffManagementPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
 
       {/* STAFF area */}
       <Route
@@ -186,6 +203,56 @@ export default function App() {
         }
       />
       <Route
+        path="/staff/customers"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <StaffCustomersPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/staff/suppliers"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <StaffSuppliersPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/staff/purchases"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <StaffPurchasesPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/staff/purchases/create"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <StaffCreatePurchasePage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/staff/sales"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <StaffSalesPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/staff/invoices"
         element={
           <ProtectedRoute>
@@ -201,6 +268,16 @@ export default function App() {
           <ProtectedRoute>
             <DashboardLayout>
               <StaffInvoiceDetailPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/staff/ai-content"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout>
+              <StaffAiContentPage />
             </DashboardLayout>
           </ProtectedRoute>
         }

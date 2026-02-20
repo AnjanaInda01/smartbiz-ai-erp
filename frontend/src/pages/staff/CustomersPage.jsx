@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { getProductsApi, createProductApi, updateProductApi, deleteProductApi } from "@/api/productApi";
+import { getCustomersApi, createCustomerApi, updateCustomerApi, deleteCustomerApi } from "@/api/customerApi";
 import PageHeader from "@/components/PageHeader";
 import DataTable from "@/components/DataTable";
 import { Button } from "@/components/ui/button";
@@ -10,93 +10,91 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { toast } from "sonner";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 
-const productSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  sku: z.string().optional(),
-  unitPrice: z.coerce.number().min(0, "Price must be >= 0"),
-  costPrice: z.coerce.number().min(0, "Cost price must be >= 0").optional(),
-  stockQty: z.coerce.number().min(0, "Stock must be >= 0"),
+const customerSchema = z.object({
+  name: z.string().min(1, "Name is required").max(120, "Name must be max 120 characters"),
+  email: z.string().email("Invalid email").max(150, "Email must be max 150 characters").optional().or(z.literal("")),
+  phone: z.string().max(30, "Phone must be max 30 characters").optional().or(z.literal("")),
+  active: z.boolean().optional(),
 });
 
-export default function ProductsPage() {
-  const [products, setProducts] = useState([]);
+export default function CustomersPage() {
+  const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [selectedProduct, setSelectedProduct] = useState(null);
+  const [selectedCustomer, setSelectedCustomer] = useState(null);
 
   const {
     register,
     handleSubmit,
     reset,
+    watch,
+    setValue,
     formState: { errors },
   } = useForm({
-    resolver: zodResolver(productSchema),
+    resolver: zodResolver(customerSchema),
+    defaultValues: {
+      active: true,
+    },
   });
 
+  const activeValue = watch("active");
+
   useEffect(() => {
-    loadProducts();
+    loadCustomers();
   }, []);
 
-  const loadProducts = async () => {
+  const loadCustomers = async () => {
     try {
       setLoading(true);
-      const res = await getProductsApi();
-      setProducts(res.data || []);
+      const res = await getCustomersApi();
+      setCustomers(res.data || []);
     } catch (error) {
-      toast.error("Failed to load products");
+      toast.error("Failed to load customers");
     } finally {
       setLoading(false);
     }
   };
 
   const handleCreate = () => {
-    setSelectedProduct(null);
-    reset();
+    setSelectedCustomer(null);
+    reset({ active: true });
     setDialogOpen(true);
   };
 
-  const handleEdit = (product) => {
-    setSelectedProduct(product);
+  const handleEdit = (customer) => {
+    setSelectedCustomer(customer);
     reset({
-      name: product.name,
-      sku: product.sku || "",
-      unitPrice: product.unitPrice,
-      costPrice: product.costPrice || 0,
-      stockQty: product.stockQty,
+      name: customer.name,
+      email: customer.email || "",
+      phone: customer.phone || "",
+      active: customer.active !== false,
     });
     setDialogOpen(true);
   };
 
-  const handleDelete = (product) => {
-    setSelectedProduct(product);
+  const handleDelete = (customer) => {
+    setSelectedCustomer(customer);
     setDeleteDialogOpen(true);
   };
 
   const onSubmit = async (data) => {
     try {
-      const productData = {
-        name: data.name,
-        sku: data.sku || null,
-        unitPrice: data.unitPrice,
-        stockQty: data.stockQty,
-        ...(data.costPrice && data.costPrice > 0 ? { costPrice: data.costPrice } : {}),
-      };
-
-      if (selectedProduct) {
-        await updateProductApi(selectedProduct.id, productData);
-        toast.success("Product updated successfully");
+      if (selectedCustomer) {
+        await updateCustomerApi(selectedCustomer.id, data);
+        toast.success("Customer updated successfully");
       } else {
-        await createProductApi(productData);
-        toast.success("Product created successfully");
+        await createCustomerApi(data);
+        toast.success("Customer created successfully");
       }
       setDialogOpen(false);
       reset();
-      loadProducts();
+      loadCustomers();
     } catch (error) {
       const message = error.response?.data?.message || "Operation failed";
       toast.error(message);
@@ -105,12 +103,12 @@ export default function ProductsPage() {
 
   const onDelete = async () => {
     try {
-      await deleteProductApi(selectedProduct.id);
-      toast.success("Product deleted successfully");
+      await deleteCustomerApi(selectedCustomer.id);
+      toast.success("Customer deleted successfully");
       setDeleteDialogOpen(false);
-      loadProducts();
+      loadCustomers();
     } catch (error) {
-      toast.error("Failed to delete product");
+      toast.error("Failed to delete customer");
     }
   };
 
@@ -121,17 +119,12 @@ export default function ProductsPage() {
         header: "Name",
       },
       {
-        accessorKey: "sku",
-        header: "SKU",
+        accessorKey: "email",
+        header: "Email",
       },
       {
-        accessorKey: "unitPrice",
-        header: "Price",
-        cell: ({ row }) => `$${row.original.unitPrice?.toFixed(2) || 0}`,
-      },
-      {
-        accessorKey: "stockQty",
-        header: "Stock",
+        accessorKey: "phone",
+        header: "Phone",
       },
       {
         accessorKey: "active",
@@ -171,12 +164,12 @@ export default function ProductsPage() {
   return (
     <div className="space-y-6 animate-fade-in">
       <PageHeader
-        title="Inventory Management"
-        description="Manage your product catalog and inventory"
+        title="Customers"
+        description="Manage your customers"
         action={
           <Button onClick={handleCreate} className="animate-scale-in shadow-md hover:shadow-lg">
             <Plus className="mr-2 h-4 w-4" />
-            Add Product
+            Add Customer
           </Button>
         }
       />
@@ -187,20 +180,20 @@ export default function ProductsPage() {
         </div>
       ) : (
         <div className="animate-slide-up">
-          <DataTable columns={columns} data={products} searchKey="name" />
+          <DataTable columns={columns} data={customers} searchKey="name" />
         </div>
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="animate-scale-in">
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle>{selectedProduct ? "Edit Product" : "Create Product"}</DialogTitle>
-            <DialogDescription className="text-base">
-              {selectedProduct ? "Update product information" : "Add a new product to your catalog"}
+            <DialogTitle>{selectedCustomer ? "Edit Customer" : "Create Customer"}</DialogTitle>
+            <DialogDescription>
+              {selectedCustomer ? "Update customer information" : "Add a new customer"}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit(onSubmit)}>
-            <div className="grid gap-4 py-4 animate-fade-in">
+            <div className="grid gap-4 py-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Name *</Label>
                 <Input id="name" {...register("name")} />
@@ -209,30 +202,31 @@ export default function ProductsPage() {
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="sku">SKU</Label>
-                <Input id="sku" {...register("sku")} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="unitPrice">Unit Price (Selling Price) *</Label>
-                <Input id="unitPrice" type="number" step="0.01" {...register("unitPrice")} />
-                {errors.unitPrice && (
-                  <p className="text-sm text-destructive">{errors.unitPrice.message}</p>
+                <Label htmlFor="email">Email</Label>
+                <Input id="email" type="email" {...register("email")} />
+                {errors.email && (
+                  <p className="text-sm text-destructive">{errors.email.message}</p>
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="costPrice">Cost Price (Purchase Price)</Label>
-                <Input id="costPrice" type="number" step="0.01" {...register("costPrice")} />
-                {errors.costPrice && (
-                  <p className="text-sm text-destructive">{errors.costPrice.message}</p>
+                <Label htmlFor="phone">Phone</Label>
+                <Input id="phone" {...register("phone")} />
+                {errors.phone && (
+                  <p className="text-sm text-destructive">{errors.phone.message}</p>
                 )}
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="stockQty">Stock Quantity *</Label>
-                <Input id="stockQty" type="number" {...register("stockQty")} />
-                {errors.stockQty && (
-                  <p className="text-sm text-destructive">{errors.stockQty.message}</p>
-                )}
-              </div>
+              {selectedCustomer && (
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="active"
+                    checked={activeValue}
+                    onCheckedChange={(checked) => setValue("active", checked === true)}
+                  />
+                  <Label htmlFor="active" className="cursor-pointer">
+                    Active
+                  </Label>
+                </div>
+              )}
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
@@ -248,8 +242,8 @@ export default function ProductsPage() {
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         onConfirm={onDelete}
-        title="Delete Product"
-        description={`Are you sure you want to delete "${selectedProduct?.name}"? This action cannot be undone.`}
+        title="Delete Customer"
+        description={`Are you sure you want to delete "${selectedCustomer?.name}"? This action cannot be undone.`}
       />
     </div>
   );
