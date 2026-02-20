@@ -142,47 +142,87 @@ export default function DashboardLayout({ children }) {
   };
 
   const SidebarContent = () => (
-    <div className="flex h-full flex-col">
-      <div className="flex h-16 items-center border-b px-6 bg-gradient-to-r from-primary/10 to-transparent dark:from-transparent dark:to-transparent">
-        <h2 className="text-xl font-semibold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-          SmartBiz ERP
-        </h2>
+    <div className="flex h-full flex-col relative overflow-hidden">
+      {/* Premium gradient background overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-indigo-950 via-indigo-900 to-purple-900 dark:from-indigo-950 dark:via-indigo-900 dark:to-purple-900 opacity-95 dark:opacity-100" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent" />
+      
+      {/* Content layer */}
+      <div className="relative z-10 flex h-full flex-col">
+        {/* Premium Header */}
+        <div className="flex h-20 items-center border-b border-indigo-800/30 dark:border-indigo-700/40 px-6 backdrop-blur-sm bg-gradient-to-r from-amber-500/10 via-transparent to-transparent">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 flex items-center justify-center shadow-lg shadow-amber-500/30">
+              <LayoutDashboard className="h-5 w-5 text-white" />
+            </div>
+            <h2 className="text-xl font-bold bg-gradient-to-r from-amber-300 via-amber-400 to-amber-500 bg-clip-text text-transparent drop-shadow-lg">
+              SmartBiz ERP
+            </h2>
+          </div>
+        </div>
+        
+        {/* Navigation */}
+        <nav className="flex-1 space-y-2 px-4 py-6 overflow-y-auto">
+          {items.map((item) => {
+            const Icon = item.icon;
+            const isActive = location.pathname === item.path;
+            return (
+              <Link
+                key={item.path}
+                to={item.path}
+                onClick={() => setSidebarOpen(false)}
+                className={cn(
+                  "flex items-center gap-3 rounded-xl px-4 py-3 text-base font-medium transition-all duration-300 group relative overflow-hidden",
+                  isActive
+                    ? "bg-gradient-to-r from-amber-500 via-amber-500 to-amber-600 text-white shadow-lg shadow-amber-500/40 scale-[1.02] border border-amber-400/30"
+                    : "text-indigo-200/80 hover:text-white hover:bg-indigo-800/40 hover:border-indigo-700/50 border border-transparent backdrop-blur-sm"
+                )}
+              >
+                {/* Active state shimmer effect */}
+                {isActive && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
+                )}
+                
+                {/* Icon with premium styling */}
+                <div className={cn(
+                  "relative z-10 flex items-center justify-center",
+                  isActive ? "text-white" : "text-indigo-300 group-hover:text-amber-400"
+                )}>
+                  <Icon className={cn(
+                    "h-5 w-5 transition-all duration-300",
+                    isActive ? "scale-110 drop-shadow-lg" : "group-hover:scale-110"
+                  )} />
+                </div>
+                
+                {/* Label */}
+                <span className={cn(
+                  "relative z-10 transition-all duration-300",
+                  isActive ? "font-semibold drop-shadow-sm" : "group-hover:font-medium"
+                )}>
+                  {item.label}
+                </span>
+                
+                {/* Active indicator bar */}
+                {isActive && (
+                  <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-10 bg-white/40 rounded-l-full shadow-lg shadow-white/20" />
+                )}
+                
+                {/* Hover glow effect */}
+                {!isActive && (
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-r from-amber-500/10 via-transparent to-transparent" />
+                )}
+              </Link>
+            );
+          })}
+        </nav>
       </div>
-      <nav className="flex-1 space-y-1 px-3 py-4">
-        {items.map((item) => {
-          const Icon = item.icon;
-          const isActive = location.pathname === item.path;
-          return (
-            <Link
-              key={item.path}
-              to={item.path}
-              onClick={() => setSidebarOpen(false)}
-              className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-base font-medium transition-all duration-300 group relative",
-                isActive
-                  ? "bg-primary text-primary-foreground shadow-md scale-[1.02]"
-                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground hover:scale-[1.01]"
-              )}
-            >
-              <Icon className={cn(
-                "h-5 w-5 transition-transform duration-300",
-                isActive ? "scale-110" : "group-hover:scale-110"
-              )} />
-              <span className="relative">{item.label}</span>
-              {isActive && (
-                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-primary-foreground rounded-r-full" />
-              )}
-            </Link>
-          );
-        })}
-      </nav>
     </div>
   );
 
   return (
     <div className="flex h-screen bg-background transition-colors duration-300">
       {/* Desktop Sidebar */}
-      <aside className="hidden w-64 border-r bg-gradient-to-b from-primary/5 via-card to-card dark:from-card dark:via-card dark:to-card lg:block transition-colors duration-300 shadow-sm">
+      <aside className="hidden w-64 border-r border-indigo-900/30 dark:border-indigo-800/40 lg:block transition-all duration-300 shadow-2xl shadow-indigo-950/50">
         <SidebarContent />
       </aside>
 
@@ -193,7 +233,7 @@ export default function DashboardLayout({ children }) {
             <Menu className="h-5 w-5" />
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="w-64 p-0">
+        <SheetContent side="left" className="w-64 p-0 border-r border-indigo-900/30 dark:border-indigo-800/40">
           <SidebarContent />
         </SheetContent>
       </Sheet>
