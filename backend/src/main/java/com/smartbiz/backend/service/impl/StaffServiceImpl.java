@@ -3,11 +3,14 @@ package com.smartbiz.backend.service.impl;
 import com.smartbiz.backend.dto.request.StaffCreateRequest;
 import com.smartbiz.backend.dto.request.StaffUpdateRequest;
 import com.smartbiz.backend.dto.response.StaffResponse;
+import com.smartbiz.backend.entity.Business;
+import com.smartbiz.backend.entity.Staff;
 import com.smartbiz.backend.entity.User;
 import com.smartbiz.backend.enums.Role;
 import com.smartbiz.backend.exception.BadRequestException;
 import com.smartbiz.backend.exception.ConflictException;
 import com.smartbiz.backend.exception.ResourceNotFoundException;
+import com.smartbiz.backend.repository.StaffRepository;
 import com.smartbiz.backend.repository.UserRepository;
 import com.smartbiz.backend.service.CurrentUserService;
 import com.smartbiz.backend.service.StaffService;
@@ -25,6 +28,7 @@ import java.util.stream.Collectors;
 public class StaffServiceImpl implements StaffService {
 
     private final UserRepository userRepository;
+    private final StaffRepository staffRepository;
     private final CurrentUserService currentUserService;
     private final PasswordEncoder passwordEncoder;
 
@@ -37,26 +41,39 @@ public class StaffServiceImpl implements StaffService {
         }
 
         User owner = currentUserService.getCurrentUser();
-        if (owner.getBusiness() == null) {
+        Business business = owner.getBusiness();
+        if (business == null) {
             throw new BadRequestException("Owner must belong to a business");
         }
 
-        User staff = new User();
-        staff.setEmail(request.getEmail());
-        staff.setPassword(passwordEncoder.encode(request.getPassword()));
-        staff.setRole(Role.STAFF);
-        staff.setBusiness(owner.getBusiness());
-        staff.setName(request.getName());
-        // Note: Phone field not in User entity yet - can be added later if needed
+        // Create login user for staff
+        User staffUser = new User();
+        staffUser.setEmail(request.getEmail());
+        staffUser.setPassword(passwordEncoder.encode(request.getPassword()));
+        staffUser.setRole(Role.STAFF);
+        staffUser.setBusiness(business);
+        staffUser.setName(request.getName());
 
-        User savedStaff = userRepository.save(staff);
+        User savedUser = userRepository.save(staffUser);
+
+        // Create staff profile
+        Staff staff = Staff.builder()
+                .business(business)
+                .user(savedUser)
+                .name(request.getName())
+                .email(request.getEmail())
+                .phone(request.getPhone())
+                .active(true)
+                .build();
+
+        Staff savedStaff = staffRepository.save(staff);
         return toStaffResponse(savedStaff);
     }
 
     @Override
     public List<StaffResponse> getAllStaff() {
         Long businessId = currentUserService.getCurrentBusinessId();
-        List<User> staffMembers = userRepository.findByBusiness_IdAndRole(businessId, Role.STAFF);
+        List<Staff> staffMembers = staffRepository.findAllByBusiness_Id(businessId);
         return staffMembers.stream()
                 .map(this::toStaffResponse)
                 .collect(Collectors.toList());
@@ -65,16 +82,8 @@ public class StaffServiceImpl implements StaffService {
     @Override
     public StaffResponse getStaffById(Long id) {
         Long businessId = currentUserService.getCurrentBusinessId();
-        User staff = userRepository.findById(id)
+        Staff staff = staffRepository.findByIdAndBusiness_Id(id, businessId)
                 .orElseThrow(() -> new ResourceNotFoundException("Staff member not found with id: " + id));
-
-        if (!staff.getRole().equals(Role.STAFF)) {
-            throw new ResourceNotFoundException("Staff member not found with id: " + id);
-        }
-
-        if (staff.getBusiness() == null || !staff.getBusiness().getId().equals(businessId)) {
-            throw new BadRequestException("Staff member does not belong to your business");
-        }
 
         return toStaffResponse(staff);
     }
@@ -82,69 +91,67 @@ public class StaffServiceImpl implements StaffService {
     @Override
     public StaffResponse updateStaff(Long id, StaffUpdateRequest request) {
         Long businessId = currentUserService.getCurrentBusinessId();
-        User staff = userRepository.findById(id)
+        Staff staff = staffRepository.findByIdAndBusiness_Id(id, businessId)
                 .orElseThrow(() -> new ResourceNotFoundException("Staff member not found with id: " + id));
 
-        if (!staff.getRole().equals(Role.STAFF)) {
-            throw new ResourceNotFoundException("Staff member not found with id: " + id);
-        }
-
-        if (staff.getBusiness() == null || !staff.getBusiness().getId().equals(businessId)) {
-            throw new BadRequestException("Staff member does not belong to your business");
-        }
+        User staffUser = staff.getUser();
 
         // Update email if provided and different
         if (request.getEmail() != null && !request.getEmail().equals(staff.getEmail())) {
-            if (userRepository.existsByEmail(request.getEmail())) {
-                throw new ConflictException("A staff member with this email already exists");
-            }
+            userRepository.findByEmail(request.getEmail()).ifPresent(existing -> {
+                if (!existing.getId().equals(staffUser.getId())) {
+                    throw new ConflictException("A staff member with this email already exists");
+                }
+            });
             staff.setEmail(request.getEmail());
+            staffUser.setEmail(request.getEmail());
         }
 
         // Update name if provided
         if (request.getName() != null) {
             staff.setName(request.getName());
+            staffUser.setName(request.getName());
+        }
+
+        // Update phone if provided
+        if (request.getPhone() != null) {
+            staff.setPhone(request.getPhone());
         }
 
         // Update password if provided
         if (request.getPassword() != null && !request.getPassword().isEmpty()) {
-            staff.setPassword(passwordEncoder.encode(request.getPassword()));
+            staffUser.setPassword(passwordEncoder.encode(request.getPassword()));
         }
 
-        // Note: Phone field not in User entity yet - can be added later if needed
-
-        User updatedStaff = userRepository.save(staff);
+        userRepository.save(staffUser);
+        Staff updatedStaff = staffRepository.save(staff);
         return toStaffResponse(updatedStaff);
     }
 
     @Override
     public void deleteStaff(Long id) {
         Long businessId = currentUserService.getCurrentBusinessId();
-        User staff = userRepository.findById(id)
+        Staff staff = staffRepository.findByIdAndBusiness_Id(id, businessId)
                 .orElseThrow(() -> new ResourceNotFoundException("Staff member not found with id: " + id));
 
-        if (!staff.getRole().equals(Role.STAFF)) {
-            throw new ResourceNotFoundException("Staff member not found with id: " + id);
-        }
+        User staffUser = staff.getUser();
 
-        if (staff.getBusiness() == null || !staff.getBusiness().getId().equals(businessId)) {
-            throw new BadRequestException("Staff member does not belong to your business");
+        staffRepository.delete(staff);
+        if (staffUser != null) {
+            userRepository.delete(staffUser);
         }
-
-        userRepository.delete(staff);
     }
 
-    private StaffResponse toStaffResponse(User user) {
-        // Note: User entity doesn't have createdAt/updatedAt fields
-        // Returning null for timestamps - can be updated if User entity is extended
+    private StaffResponse toStaffResponse(Staff staff) {
         return new StaffResponse(
-                user.getId(),
-                user.getName(),
-                user.getEmail(),
-                null, // Phone not in User entity yet
-                user.getBusiness() != null ? user.getBusiness().getId() : null,
-                null, // createdAt not in User entity
-                null  // updatedAt not in User entity
+                staff.getId(),
+                staff.getName(),
+                staff.getEmail(),
+                staff.getPhone(),
+                staff.getBusiness() != null ? staff.getBusiness().getId() : null,
+                staff.getCreatedAt(),
+                staff.getUpdatedAt()
         );
     }
 }
+
