@@ -2,23 +2,49 @@ import { useState, useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { getStaffApi, createStaffApi, updateStaffApi, deleteStaffApi } from "@/api/staffApi";
+import {
+  getStaffApi,
+  createStaffApi,
+  updateStaffApi,
+  deleteStaffApi,
+} from "@/api/staffApi";
 import PageHeader from "@/components/PageHeader";
 import DataTable from "@/components/DataTable";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { toast } from "sonner";
-import { Plus, Pencil, Trash2, Users } from "lucide-react";
+import { Plus, Pencil, Trash2 } from "lucide-react";
 
 const staffSchema = z.object({
-  name: z.string().min(1, "Name is required").max(120, "Name must be max 120 characters"),
-  email: z.string().email("Invalid email").max(150, "Email must be max 150 characters"),
-  password: z.string().min(6, "Password must be at least 6 characters").optional().or(z.literal("")),
-  phone: z.string().max(30, "Phone must be max 30 characters").optional().or(z.literal("")),
+  name: z
+    .string()
+    .min(1, "Name is required")
+    .max(120, "Name must be max 120 characters"),
+  email: z
+    .string()
+    .email("Invalid email")
+    .max(150, "Email must be max 150 characters"),
+  password: z
+    .string()
+    .min(6, "Password must be at least 6 characters")
+    .optional()
+    .or(z.literal("")),
+  phone: z
+    .string()
+    .max(30, "Phone must be max 30 characters")
+    .optional()
+    .or(z.literal("")),
 });
 
 export default function StaffManagementPage() {
@@ -47,7 +73,8 @@ export default function StaffManagementPage() {
       const res = await getStaffApi();
       setStaff(res.data || []);
     } catch (error) {
-      toast.error("Failed to load staff members");
+      const message = error.response?.data?.message || "Failed to load staff members";
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -65,7 +92,7 @@ export default function StaffManagementPage() {
       name: staffMember.name,
       email: staffMember.email,
       phone: staffMember.phone || "",
-      password: "", // Don't pre-fill password
+      password: "",
     });
     setDialogOpen(true);
   };
@@ -77,29 +104,37 @@ export default function StaffManagementPage() {
 
   const onSubmit = async (data) => {
     try {
-      const staffData = {
+      const payload = {
         name: data.name,
         email: data.email,
         phone: data.phone || null,
-        ...(data.password && data.password.length > 0 ? { password: data.password } : {}),
       };
 
       if (selectedStaff) {
-        await updateStaffApi(selectedStaff.id, staffData);
+        // Only send password if provided
+        if (data.password && data.password.length >= 6) {
+          payload.password = data.password;
+        }
+        await updateStaffApi(selectedStaff.id, payload);
         toast.success("Staff member updated successfully");
       } else {
         if (!data.password || data.password.length < 6) {
           toast.error("Password is required for new staff members");
           return;
         }
-        await createStaffApi(staffData);
+        payload.password = data.password;
+        await createStaffApi(payload);
         toast.success("Staff member created successfully");
       }
+
       setDialogOpen(false);
       reset();
       loadStaff();
     } catch (error) {
-      const message = error.response?.data?.message || "Operation failed";
+      const message =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        "Operation failed";
       toast.error(message);
     }
   };
@@ -111,7 +146,11 @@ export default function StaffManagementPage() {
       setDeleteDialogOpen(false);
       loadStaff();
     } catch (error) {
-      toast.error("Failed to delete staff member");
+      const message =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        "Failed to delete staff member";
+      toast.error(message);
     }
   };
 
@@ -120,12 +159,6 @@ export default function StaffManagementPage() {
       {
         accessorKey: "name",
         header: "Name",
-        cell: ({ row }) => (
-          <div className="flex items-center gap-2">
-            <Users className="h-4 w-4 text-primary" />
-            <span className="font-medium">{row.original.name}</span>
-          </div>
-        ),
       },
       {
         accessorKey: "email",
@@ -135,6 +168,15 @@ export default function StaffManagementPage() {
         accessorKey: "phone",
         header: "Phone",
         cell: ({ row }) => row.original.phone || "-",
+      },
+      {
+        accessorKey: "active",
+        header: "Status",
+        cell: ({ row }) => (
+          <Badge variant={row.original.active !== false ? "default" : "secondary"}>
+            {row.original.active !== false ? "Active" : "Inactive"}
+          </Badge>
+        ),
       },
       {
         id: "actions",
@@ -166,9 +208,12 @@ export default function StaffManagementPage() {
     <div className="space-y-6 animate-fade-in">
       <PageHeader
         title="Staff Management"
-        description="Manage your staff members and their access"
+        description="Add and manage your staff members"
         action={
-          <Button onClick={handleCreate} className="animate-scale-in shadow-md hover:shadow-lg">
+          <Button
+            onClick={handleCreate}
+            className="animate-scale-in shadow-md hover:shadow-lg"
+          >
             <Plus className="mr-2 h-4 w-4" />
             Add Staff Member
           </Button>
@@ -188,9 +233,13 @@ export default function StaffManagementPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{selectedStaff ? "Edit Staff Member" : "Add Staff Member"}</DialogTitle>
+            <DialogTitle>
+              {selectedStaff ? "Edit Staff Member" : "Create Staff Member"}
+            </DialogTitle>
             <DialogDescription>
-              {selectedStaff ? "Update staff member information" : "Add a new staff member to your business"}
+              {selectedStaff
+                ? "Update staff member information"
+                : "Add a new staff member who can log in and manage operations."}
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit(onSubmit)}>
@@ -211,11 +260,15 @@ export default function StaffManagementPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">
-                  {selectedStaff ? "New Password (leave blank to keep current)" : "Password *"}
+                  {selectedStaff
+                    ? "New Password (leave blank to keep current)"
+                    : "Password *"}
                 </Label>
                 <Input id="password" type="password" {...register("password")} />
                 {errors.password && (
-                  <p className="text-sm text-destructive">{errors.password.message}</p>
+                  <p className="text-sm text-destructive">
+                    {errors.password.message}
+                  </p>
                 )}
               </div>
               <div className="space-y-2">
@@ -227,10 +280,16 @@ export default function StaffManagementPage() {
               </div>
             </div>
             <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setDialogOpen(false)}
+              >
                 Cancel
               </Button>
-              <Button type="submit">{selectedStaff ? "Update" : "Create"}</Button>
+              <Button type="submit">
+                {selectedStaff ? "Update" : "Create"}
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -241,8 +300,9 @@ export default function StaffManagementPage() {
         onOpenChange={setDeleteDialogOpen}
         onConfirm={onDelete}
         title="Delete Staff Member"
-        description={`Are you sure you want to delete "${selectedStaff?.name}"? This action cannot be undone.`}
+        description={`Are you sure you want to delete "${selectedStaff?.name}"? This will also remove their login access.`}
       />
     </div>
   );
 }
+

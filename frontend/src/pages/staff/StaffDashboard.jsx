@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Package, FileText, DollarSign, Users, Truck, ShoppingCart, TrendingUp, Mail } from "lucide-react";
+import { Package, FileText, DollarSign } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { getProductsApi } from "@/api/productApi";
 import { getInvoicesApi } from "@/api/invoiceApi";
@@ -124,22 +124,13 @@ export default function StaffDashboard() {
           <CardTitle>Quick Actions</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 md:grid-cols-2">
             <Button asChild variant="outline" className="h-auto flex-col items-start p-4">
               <Link to="/staff/products">
                 <Package className="mb-2 h-6 w-6" />
                 <div className="text-left">
-                  <div className="font-semibold">Inventory</div>
-                  <div className="text-sm text-muted-foreground">Manage products</div>
-                </div>
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="h-auto flex-col items-start p-4">
-              <Link to="/staff/customers">
-                <Users className="mb-2 h-6 w-6" />
-                <div className="text-left">
-                  <div className="font-semibold">Customers</div>
-                  <div className="text-sm text-muted-foreground">Manage customers</div>
+                  <div className="font-semibold">View Products</div>
+                  <div className="text-sm text-muted-foreground">Browse product catalog</div>
                 </div>
               </Link>
             </Button>
@@ -147,17 +138,8 @@ export default function StaffDashboard() {
               <Link to="/staff/invoices">
                 <FileText className="mb-2 h-6 w-6" />
                 <div className="text-left">
-                  <div className="font-semibold">Invoices</div>
-                  <div className="text-sm text-muted-foreground">Create invoice</div>
-                </div>
-              </Link>
-            </Button>
-            <Button asChild variant="outline" className="h-auto flex-col items-start p-4">
-              <Link to="/staff/ai-content">
-                <Mail className="mb-2 h-6 w-6" />
-                <div className="text-left">
-                  <div className="font-semibold">AI Content</div>
-                  <div className="text-sm text-muted-foreground">Generate content</div>
+                  <div className="font-semibold">Create Invoice</div>
+                  <div className="text-sm text-muted-foreground">Generate new invoice</div>
                 </div>
               </Link>
             </Button>
