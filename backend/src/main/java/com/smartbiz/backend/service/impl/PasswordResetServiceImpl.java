@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.security.SecureRandom;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Base64;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -39,7 +39,14 @@ public class PasswordResetServiceImpl implements PasswordResetService {
         // Security: do not reveal user existence
         if (user == null) return;
 
-        String otp = String.format("%06d", secureRandom.nextInt(999999));
+        // Real-world behavior: invalidate previous unused OTPs before issuing a new one
+        List<PasswordResetOtp> activeOtps = otpRepository.findAllByUserAndUsedFalse(user);
+        if (!activeOtps.isEmpty()) {
+            activeOtps.forEach(otp -> otp.setUsed(true));
+            otpRepository.saveAll(activeOtps);
+        }
+
+        String otp = String.format("%06d", secureRandom.nextInt(1_000_000));
 
         PasswordResetOtp entity = PasswordResetOtp.builder()
                 .user(user)
@@ -50,7 +57,9 @@ public class PasswordResetServiceImpl implements PasswordResetService {
 
         otpRepository.save(entity);
 
-        emailService.sendOtpEmail(email, otp);
+        String role = user.getRole() != null ? user.getRole().name() : null;
+        String businessName = user.getBusiness() != null ? user.getBusiness().getName() : null;
+        emailService.sendOtpEmail(email, user.getName(), role, businessName, otp);
     }
 
     @Override
@@ -104,11 +113,17 @@ public class PasswordResetServiceImpl implements PasswordResetService {
             throw new BadRequestException("Invalid reset token");
         }
 
+        if (entity.getExpiresAt().isBefore(Instant.now())) {
+            throw new BadRequestException("Reset session expired. Please request a new OTP.");
+        }
+
         user.setPassword(passwordEncoder.encode(newPassword));
         entity.setUsed(true);
 
         userRepository.save(user);
         otpRepository.save(entity);
-        emailService.sendPasswordChangedEmail(email);
+        String role = user.getRole() != null ? user.getRole().name() : null;
+        String businessName = user.getBusiness() != null ? user.getBusiness().getName() : null;
+        emailService.sendPasswordChangedEmail(email, user.getName(), role, businessName);
     }
 }
