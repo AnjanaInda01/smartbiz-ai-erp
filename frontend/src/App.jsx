@@ -16,8 +16,13 @@ import OwnerAiInsightsPage from "./pages/owner/AiInsightsPage";
 import OwnerSalesPage from "./pages/owner/SalesPage";
 import OwnerStaffManagementPage from "./pages/owner/StaffManagementPage";
 import StaffProductsPage from "./pages/staff/ProductsPage";
+import StaffCustomersPage from "./pages/staff/CustomersPage";
+import StaffSuppliersPage from "./pages/staff/SuppliersPage";
+import StaffPurchasesPage from "./pages/staff/PurchasesPage";
+import StaffCreatePurchasePage from "./pages/staff/CreatePurchasePage";
 import StaffInvoicesPage from "./pages/staff/InvoicesPage";
 import StaffInvoiceDetailPage from "./pages/staff/InvoiceDetailPage";
+import StaffAiContentPage from "./pages/staff/AiContentPage";
 import AdminSubscriptionPlansPage from "./pages/admin/SubscriptionPlansPage";
 import AdminBusinessesPage from "./pages/admin/BusinessesPage";
 import AdminAiUsagePage from "./pages/admin/AiUsagePage";
@@ -47,7 +52,7 @@ export default function App() {
       <Route
         path="/owner"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowRoles={["OWNER"]}>
             <DashboardLayout>
               <OwnerDashboard />
             </DashboardLayout>
@@ -57,7 +62,7 @@ export default function App() {
       <Route
         path="/owner/sales"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowRoles={["OWNER"]}>
             <DashboardLayout>
               <OwnerSalesPage />
             </DashboardLayout>
@@ -67,7 +72,7 @@ export default function App() {
       <Route
         path="/owner/products"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowRoles={["OWNER"]}>
             <DashboardLayout>
               <OwnerProductsPage />
             </DashboardLayout>
@@ -77,7 +82,7 @@ export default function App() {
       <Route
         path="/owner/customers"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowRoles={["OWNER"]}>
             <DashboardLayout>
               <OwnerCustomersPage />
             </DashboardLayout>
@@ -87,7 +92,7 @@ export default function App() {
       <Route
         path="/owner/invoices"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowRoles={["OWNER"]}>
             <DashboardLayout>
               <OwnerInvoicesPage />
             </DashboardLayout>
@@ -97,7 +102,7 @@ export default function App() {
       <Route
         path="/owner/invoices/:id"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowRoles={["OWNER"]}>
             <DashboardLayout>
               <OwnerInvoiceDetailPage />
             </DashboardLayout>
@@ -107,7 +112,7 @@ export default function App() {
       <Route
         path="/owner/subscription"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowRoles={["OWNER"]}>
             <DashboardLayout>
               <OwnerSubscriptionPage />
             </DashboardLayout>
@@ -117,7 +122,7 @@ export default function App() {
       <Route
         path="/owner/suppliers"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowRoles={["OWNER"]}>
             <DashboardLayout>
               <OwnerSuppliersPage />
             </DashboardLayout>
@@ -127,7 +132,7 @@ export default function App() {
       <Route
         path="/owner/purchases"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowRoles={["OWNER"]}>
             <DashboardLayout>
               <OwnerPurchasesPage />
             </DashboardLayout>
@@ -137,7 +142,7 @@ export default function App() {
       <Route
         path="/owner/purchases/create"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowRoles={["OWNER"]}>
             <DashboardLayout>
               <OwnerCreatePurchasePage />
             </DashboardLayout>
@@ -147,7 +152,7 @@ export default function App() {
       <Route
         path="/owner/reports"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowRoles={["OWNER"]}>
             <DashboardLayout>
               <OwnerReportsPage />
             </DashboardLayout>
@@ -157,7 +162,7 @@ export default function App() {
       <Route
         path="/owner/ai-insights"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowRoles={["OWNER"]}>
             <DashboardLayout>
               <OwnerAiInsightsPage />
             </DashboardLayout>
@@ -167,7 +172,7 @@ export default function App() {
       <Route
         path="/owner/staff"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowRoles={["OWNER"]}>
             <DashboardLayout>
               <OwnerStaffManagementPage />
             </DashboardLayout>
@@ -179,7 +184,7 @@ export default function App() {
       <Route
         path="/staff"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowRoles={["STAFF"]}>
             <DashboardLayout>
               <StaffDashboard />
             </DashboardLayout>
@@ -189,7 +194,7 @@ export default function App() {
       <Route
         path="/staff/products"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowRoles={["STAFF"]}>
             <DashboardLayout>
               <StaffProductsPage />
             </DashboardLayout>
@@ -197,9 +202,49 @@ export default function App() {
         }
       />
       <Route
+        path="/staff/customers"
+        element={
+          <ProtectedRoute allowRoles={["STAFF"]}>
+            <DashboardLayout>
+              <StaffCustomersPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/staff/suppliers"
+        element={
+          <ProtectedRoute allowRoles={["STAFF"]}>
+            <DashboardLayout>
+              <StaffSuppliersPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/staff/purchases"
+        element={
+          <ProtectedRoute allowRoles={["STAFF"]}>
+            <DashboardLayout>
+              <StaffPurchasesPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/staff/purchases/create"
+        element={
+          <ProtectedRoute allowRoles={["STAFF"]}>
+            <DashboardLayout>
+              <StaffCreatePurchasePage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
         path="/staff/invoices"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowRoles={["STAFF"]}>
             <DashboardLayout>
               <StaffInvoicesPage />
             </DashboardLayout>
@@ -209,9 +254,19 @@ export default function App() {
       <Route
         path="/staff/invoices/:id"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowRoles={["STAFF"]}>
             <DashboardLayout>
               <StaffInvoiceDetailPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/staff/ai-content"
+        element={
+          <ProtectedRoute allowRoles={["STAFF"]}>
+            <DashboardLayout>
+              <StaffAiContentPage />
             </DashboardLayout>
           </ProtectedRoute>
         }
@@ -221,7 +276,7 @@ export default function App() {
       <Route
         path="/admin"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowRoles={["ADMIN"]}>
             <DashboardLayout>
               <AdminDashboard />
             </DashboardLayout>
@@ -231,7 +286,7 @@ export default function App() {
       <Route
         path="/admin/businesses"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowRoles={["ADMIN"]}>
             <DashboardLayout>
               <AdminBusinessesPage />
             </DashboardLayout>
@@ -241,7 +296,7 @@ export default function App() {
       <Route
         path="/admin/ai-usage"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowRoles={["ADMIN"]}>
             <DashboardLayout>
               <AdminAiUsagePage />
             </DashboardLayout>
@@ -251,7 +306,7 @@ export default function App() {
       <Route
         path="/admin/statistics"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowRoles={["ADMIN"]}>
             <DashboardLayout>
               <AdminSystemStatisticsPage />
             </DashboardLayout>
@@ -261,7 +316,7 @@ export default function App() {
       <Route
         path="/admin/subscription-plans"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute allowRoles={["ADMIN"]}>
             <DashboardLayout>
               <AdminSubscriptionPlansPage />
             </DashboardLayout>

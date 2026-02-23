@@ -118,6 +118,11 @@ public class StaffServiceImpl implements StaffService {
             staff.setPhone(request.getPhone());
         }
 
+        // Update active status if provided
+        if (request.getActive() != null) {
+            staff.setActive(request.getActive());
+        }
+
         // Update password if provided
         if (request.getPassword() != null && !request.getPassword().isEmpty()) {
             staffUser.setPassword(passwordEncoder.encode(request.getPassword()));
@@ -148,6 +153,7 @@ public class StaffServiceImpl implements StaffService {
                 staff.getName(),
                 staff.getEmail(),
                 staff.getPhone(),
+                staff.isActive(),
                 staff.getBusiness() != null ? staff.getBusiness().getId() : null,
                 staff.getCreatedAt(),
                 staff.getUpdatedAt()

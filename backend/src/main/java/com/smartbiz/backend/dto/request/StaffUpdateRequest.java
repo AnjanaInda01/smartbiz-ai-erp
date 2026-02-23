@@ -21,4 +21,6 @@ public class StaffUpdateRequest {
 
     @Size(max = 30, message = "Phone must not exceed 30 characters")
     private String phone;
+
+    private Boolean active;
 }

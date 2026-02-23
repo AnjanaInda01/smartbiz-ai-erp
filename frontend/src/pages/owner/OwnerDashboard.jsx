@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { TrendingUp, TrendingDown, Package, Users, FileText, DollarSign, Crown, AlertCircle, Truck, BarChart3, Building2 } from "lucide-react";
+import { TrendingUp, TrendingDown, Package, Users, FileText, DollarSign, Crown, AlertCircle, Truck, BarChart3, Building2, UserPlus } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { getProductsApi } from "@/api/productApi";
 import { getCustomersApi } from "@/api/customerApi";
@@ -107,6 +107,7 @@ export default function OwnerDashboard() {
     { id: "suppliers", label: "Suppliers", icon: Truck, path: "/owner/suppliers" },
     { id: "invoices", label: "Invoices", icon: FileText, path: "/owner/invoices" },
     { id: "reports", label: "Reports", icon: BarChart3, path: "/owner/reports" },
+    { id: "staff", label: "Staff", icon: UserPlus, path: "/owner/staff" },
   ];
 
   const handleQuickAction = (action) => {

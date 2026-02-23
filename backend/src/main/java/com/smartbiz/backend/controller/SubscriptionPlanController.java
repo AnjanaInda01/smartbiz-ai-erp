@@ -35,7 +35,7 @@ public class SubscriptionPlanController {
 
     // Public endpoint for owners to view active plans
     @GetMapping("/active")
-    @PreAuthorize("hasAnyRole('OWNER','STAFF','ADMIN')")
+    @PreAuthorize("hasAnyRole('OWNER','ADMIN')")
     public ResponseEntity<List<SubscriptionPlan>> listActive() {
         return ResponseEntity.ok(planRepository.findAll().stream()
                 .filter(plan -> plan.getActive() != null && plan.getActive())

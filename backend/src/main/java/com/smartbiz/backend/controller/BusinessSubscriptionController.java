@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/v1/business-subscriptions")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('OWNER','STAFF')")
+@PreAuthorize("hasRole('OWNER')")
 public class BusinessSubscriptionController {
 
     private final BusinessSubscriptionRepository subscriptionRepository;

@@ -15,7 +15,7 @@ public class ReportController {
     private final ReportService reportService;
 
     @GetMapping("/dashboard")
-    @PreAuthorize("hasAnyRole('OWNER','STAFF')")
+    @PreAuthorize("hasAnyRole('OWNER','ADMIN')")
     public ResponseEntity<DashboardResponse> dashboard() {
         return ResponseEntity.ok(reportService.dashboard());
     }

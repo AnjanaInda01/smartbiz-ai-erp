@@ -12,6 +12,7 @@ public class StaffResponse {
     private String name;
     private String email;
     private String phone;
+    private boolean active;
     private Long businessId;
     private Instant createdAt;
     private Instant updatedAt;
