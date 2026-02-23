@@ -35,6 +35,7 @@ public class PasswordResetOtp {
     private String resetTokenHash;
 
     @Column(nullable = false)
+    @Builder.Default
     private boolean used = false;
 
     @CreationTimestamp

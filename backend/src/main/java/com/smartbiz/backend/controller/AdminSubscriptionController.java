@@ -2,6 +2,7 @@ package com.smartbiz.backend.controller;
 
 import com.smartbiz.backend.entity.*;
 import com.smartbiz.backend.enums.SubscriptionStatus;
+import com.smartbiz.backend.exception.ResourceNotFoundException;
 import com.smartbiz.backend.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -26,10 +27,10 @@ public class AdminSubscriptionController {
             @PathVariable Long planId) {
 
         Business business = businessRepository.findById(businessId)
-                .orElseThrow(() -> new RuntimeException("Business not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Business not found: " + businessId));
 
         SubscriptionPlan plan = planRepository.findById(planId)
-                .orElseThrow(() -> new RuntimeException("Plan not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Plan not found: " + planId));
 
         // deactivate old active subscription
         businessSubscriptionRepository

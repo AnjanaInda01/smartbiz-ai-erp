@@ -47,6 +47,7 @@ public class Customer {
     private String phone;
 
     @Column(nullable = false)
+    @Builder.Default
     private boolean active = true;
 
     @CreationTimestamp

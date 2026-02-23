@@ -54,26 +54,33 @@ public class Invoice {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
+    @Builder.Default
     private InvoiceStatus status = InvoiceStatus.DRAFT;
 
     @Column(nullable = false, precision = 12, scale = 2)
+    @Builder.Default
     private BigDecimal subTotal = BigDecimal.ZERO;
 
     @Column(nullable = false, precision = 12, scale = 2)
+    @Builder.Default
     private BigDecimal discount = BigDecimal.ZERO;
 
     @Column(nullable = false, precision = 12, scale = 2)
+    @Builder.Default
     private BigDecimal grandTotal = BigDecimal.ZERO;
 
     // Payment fields (simple for now)
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
+    @Builder.Default
     private PaymentStatus paymentStatus = PaymentStatus.UNPAID;
 
     @Column(nullable = false, precision = 12, scale = 2)
+    @Builder.Default
     private BigDecimal paidAmount = BigDecimal.ZERO;
 
     @Column(nullable = false)
+    @Builder.Default
     private boolean active = true;
 
     @OneToMany(mappedBy = "invoice", cascade = CascadeType.ALL, orphanRemoval = true)

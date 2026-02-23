@@ -53,6 +53,7 @@ public class SupplierProduct {
     private BigDecimal costPrice;
 
     @Column(nullable = false)
+    @Builder.Default
     private boolean active = true;
 
     @CreationTimestamp

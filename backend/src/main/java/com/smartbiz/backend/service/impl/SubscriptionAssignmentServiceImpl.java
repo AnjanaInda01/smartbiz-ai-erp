@@ -4,6 +4,7 @@ import com.smartbiz.backend.entity.Business;
 import com.smartbiz.backend.entity.BusinessSubscription;
 import com.smartbiz.backend.entity.SubscriptionPlan;
 import com.smartbiz.backend.enums.SubscriptionStatus;
+import com.smartbiz.backend.exception.ResourceNotFoundException;
 import com.smartbiz.backend.repository.BusinessRepository;
 import com.smartbiz.backend.repository.BusinessSubscriptionRepository;
 import com.smartbiz.backend.repository.SubscriptionPlanRepository;
@@ -44,7 +45,7 @@ public class SubscriptionAssignmentServiceImpl implements SubscriptionAssignment
 
         if (freePlan != null) {
             Business business = businessRepository.findById(businessId)
-                    .orElseThrow(() -> new RuntimeException("Business not found: " + businessId));
+                    .orElseThrow(() -> new ResourceNotFoundException("Business not found: " + businessId));
 
             BusinessSubscription subscription = new BusinessSubscription();
             subscription.setBusiness(business);
