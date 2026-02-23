@@ -5,6 +5,7 @@ import com.smartbiz.backend.entity.User;
 import com.smartbiz.backend.exception.BadRequestException;
 import com.smartbiz.backend.repository.PasswordResetOtpRepository;
 import com.smartbiz.backend.repository.UserRepository;
+import com.smartbiz.backend.service.EmailService;
 import com.smartbiz.backend.service.PasswordResetService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -25,6 +26,7 @@ public class PasswordResetServiceImpl implements PasswordResetService {
     private final UserRepository userRepository;
     private final PasswordResetOtpRepository otpRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
 
     private final SecureRandom secureRandom = new SecureRandom();
 
@@ -48,8 +50,7 @@ public class PasswordResetServiceImpl implements PasswordResetService {
 
         otpRepository.save(entity);
 
-        // 🔥 TODO: Replace with real EmailService
-        System.out.println("OTP for " + email + " = " + otp);
+        emailService.sendOtpEmail(email, otp);
     }
 
     @Override
@@ -108,5 +109,6 @@ public class PasswordResetServiceImpl implements PasswordResetService {
 
         userRepository.save(user);
         otpRepository.save(entity);
+        emailService.sendPasswordChangedEmail(email);
     }
 }
