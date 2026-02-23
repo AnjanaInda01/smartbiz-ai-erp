@@ -27,6 +27,7 @@ import AdminSubscriptionPlansPage from "./pages/admin/SubscriptionPlansPage";
 import AdminBusinessesPage from "./pages/admin/BusinessesPage";
 import AdminAiUsagePage from "./pages/admin/AiUsagePage";
 import AdminSystemStatisticsPage from "./pages/admin/SystemStatisticsPage";
+import ProfilePage from "./pages/ProfilePage";
 import ProtectedRoute from "./auth/ProtectedRoute";
 import { useAuth } from "./auth/AuthProvider";
 import { roleHome } from "./auth/roleRedirect";
@@ -179,6 +180,16 @@ export default function App() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/owner/profile"
+        element={
+          <ProtectedRoute allowRoles={["OWNER"]}>
+            <DashboardLayout>
+              <ProfilePage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
 
       {/* STAFF area */}
       <Route
@@ -271,6 +282,16 @@ export default function App() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/staff/profile"
+        element={
+          <ProtectedRoute allowRoles={["STAFF"]}>
+            <DashboardLayout>
+              <ProfilePage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
 
       {/* ADMIN area */}
       <Route
@@ -319,6 +340,16 @@ export default function App() {
           <ProtectedRoute allowRoles={["ADMIN"]}>
             <DashboardLayout>
               <AdminSubscriptionPlansPage />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/admin/profile"
+        element={
+          <ProtectedRoute allowRoles={["ADMIN"]}>
+            <DashboardLayout>
+              <ProfilePage />
             </DashboardLayout>
           </ProtectedRoute>
         }

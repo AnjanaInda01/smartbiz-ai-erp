@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/auth/AuthProvider";
 import { useTheme } from "@/contexts/ThemeProvider";
@@ -92,8 +92,7 @@ export default function DashboardLayout({ children }) {
   const role = normalizeRole(user?.role || "");
   const items = sidebarItems[role.toLowerCase()] || [];
 
-  // Mock notifications - in a real app, this would come from an API
-  const notifications = useMemo(() => [
+  const [notifications, setNotifications] = useState([
     {
       id: 1,
       type: "info",
@@ -118,13 +117,25 @@ export default function DashboardLayout({ children }) {
       time: "2 days ago",
       read: true,
     },
-  ], []);
+  ]);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   const handleLogout = () => {
     logout();
     navigate("/login");
+  };
+
+  const handleNotificationsOpenChange = (open) => {
+    if (!open) return;
+    setNotifications((prev) =>
+      prev.map((item) => (item.read ? item : { ...item, read: true }))
+    );
+  };
+
+  const handleProfileNavigate = () => {
+    if (!role) return;
+    navigate(`/${role.toLowerCase()}/profile`);
   };
 
   // Search functionality
@@ -311,7 +322,7 @@ export default function DashboardLayout({ children }) {
               )}
             </Button>
 
-            <DropdownMenu>
+            <DropdownMenu onOpenChange={handleNotificationsOpenChange}>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="relative flex-shrink-0 transition-all duration-300 hover:scale-110">
                   <Bell className="h-5 w-5" />
@@ -405,7 +416,7 @@ export default function DashboardLayout({ children }) {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={handleProfileNavigate}>
                   <User className="mr-2 h-4 w-4" />
                   Profile
                 </DropdownMenuItem>
