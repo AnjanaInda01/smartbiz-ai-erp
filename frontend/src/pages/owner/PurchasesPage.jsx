@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { getPurchasesApi, confirmPurchaseApi } from "@/api/purchaseApi";
 import PageHeader from "@/components/PageHeader";
 import DataTable from "@/components/DataTable";
@@ -9,6 +10,7 @@ import { toast } from "sonner";
 import { ShoppingCart, DollarSign, CheckCircle2, Clock, Plus } from "lucide-react";
 
 export default function PurchasesPage() {
+  const navigate = useNavigate();
   const [purchases, setPurchases] = useState([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -141,7 +143,7 @@ export default function PurchasesPage() {
         title="Purchases & Expenses"
         description="Track your daily expenses and purchases"
         action={
-          <Button onClick={() => window.location.href = "/owner/purchases/create"} className="animate-scale-in shadow-md hover:shadow-lg">
+          <Button onClick={() => navigate("/owner/purchases/create")} className="animate-scale-in shadow-md hover:shadow-lg">
             <Plus className="mr-2 h-4 w-4" />
             Create Purchase
           </Button>

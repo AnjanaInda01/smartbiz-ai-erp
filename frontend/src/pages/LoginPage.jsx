@@ -264,53 +264,36 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Right Side - Promotional Content with Image */}
-      <div className="hidden lg:flex w-1/2 flex-col items-center justify-center bg-gradient-to-br from-primary/90 via-primary to-primary/80 p-12 text-white relative overflow-hidden">
+      {/* Right Side - Promotional Content */}
+      <div
+        className="hidden lg:flex w-1/2 flex-col items-center justify-center p-12 text-white relative overflow-hidden bg-cover bg-center"
+        style={{
+          backgroundImage:
+            "linear-gradient(135deg, rgba(10,35,90,0.88) 0%, rgba(32,75,180,0.78) 45%, rgba(59,130,246,0.72) 100%), url('https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1800&q=80')",
+        }}
+      >
         {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0" style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H2zm0-30V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-          }} />
-        </div>
-
-        {/* Image Section - Place your ERP system image here */}
-        <div className="relative z-10 mb-8 w-full max-w-lg">
-          <div className="relative overflow-hidden rounded-2xl bg-white/10 backdrop-blur-sm shadow-2xl">
-            {/* Image Placeholder - Replace with actual image */}
-            {/* 
-              Recommended image specifications:
-              - Size: 800x600px or larger
-              - Format: JPG, PNG, or WebP
-              - Content: Professional person using laptop/tablet showing ERP dashboard
-              - Style: Modern, clean, business-focused
-              - Place image in: public/login-hero.jpg or src/assets/login-hero.jpg
-            */}
-            <img
-              src="/login-hero.jpg"
-              alt="SmartBiz ERP - Streamline your business operations"
-              className="h-auto w-full object-cover"
-              onError={(e) => {
-                // Fallback to gradient if image not found
-                e.target.style.display = 'none';
-                e.target.parentElement.style.background = 'linear-gradient(135deg, rgba(99, 102, 241, 0.8) 0%, rgba(139, 92, 246, 0.8) 100%)';
-              }}
-            />
-            {/* Fallback gradient background if image not loaded */}
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/80 to-primary/60" style={{ display: 'none' }} />
-          </div>
+        <div className="absolute inset-0 opacity-15">
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage:
+                "url(\"data:image/svg+xml,%3Csvg width='64' height='64' viewBox='0 0 64 64' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Ccircle cx='8' cy='8' r='2'/%3E%3Ccircle cx='32' cy='32' r='2'/%3E%3Ccircle cx='56' cy='56' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")",
+            }}
+          />
         </div>
 
         {/* Content */}
-        <div className="relative z-10 max-w-md space-y-6">
+        <div className="relative z-10 max-w-md space-y-6 backdrop-blur-[1px]">
           <div className="space-y-4">
-            <div className="inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-2 text-sm backdrop-blur-sm">
+            <div className="inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-2 text-sm backdrop-blur-sm border border-white/20">
               <Sparkles className="h-4 w-4" />
               <span>PRO TIP #1</span>
             </div>
             <h2 className="text-4xl font-bold leading-tight">
               Streamline Your Business Operations
             </h2>
-            <p className="text-lg text-white/90 leading-relaxed">
+            <p className="text-lg text-white/95 leading-relaxed">
               Manage your inventory, track sales, generate reports, and gain AI-powered insights—all in one powerful ERP system designed for modern businesses.
             </p>
           </div>

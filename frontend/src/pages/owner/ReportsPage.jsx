@@ -1,10 +1,9 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { getDashboardReportApi } from "@/api/reportApi";
 import PageHeader from "@/components/PageHeader";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import html2canvas from "html2canvas";
 import { jsPDF } from "jspdf";
 import {
   DollarSign,
@@ -24,7 +23,6 @@ export default function ReportsPage() {
   const [report, setReport] = useState(null);
   const [loading, setLoading] = useState(true);
   const [exportingPdf, setExportingPdf] = useState(false);
-  const reportRef = useRef(null);
 
   useEffect(() => {
     loadReport();
@@ -42,16 +40,34 @@ export default function ReportsPage() {
     }
   };
 
-  const handlePrint = () => {
-    if (!reportRef.current) return;
+  const formatCurrency = (value) =>
+    `$${parseFloat(value || 0).toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
 
+  const handlePrint = () => {
     const printWindow = window.open("", "_blank", "width=1024,height=768");
     if (!printWindow) {
       toast.error("Please allow popups to print the report");
       return;
     }
 
-    const reportHtml = reportRef.current.innerHTML;
+    const lowStockRows =
+      report.lowStockProducts && report.lowStockProducts.length > 0
+        ? report.lowStockProducts
+            .map(
+              (p) => `
+              <tr>
+                <td>${p.name}</td>
+                <td>${p.sku || "-"}</td>
+                <td style="text-align:right;">${p.stockQty}</td>
+              </tr>
+            `
+            )
+            .join("")
+        : `<tr><td colspan="3" style="text-align:center;">No low stock products</td></tr>`;
+
     printWindow.document.write(`
       <html>
         <head>
@@ -60,21 +76,39 @@ export default function ReportsPage() {
             body { font-family: Arial, sans-serif; margin: 24px; color: #111827; }
             h1 { font-size: 24px; margin-bottom: 6px; }
             p { margin: 0 0 12px; color: #6b7280; }
-            .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-            .card { border: 1px solid #e5e7eb; border-radius: 10px; padding: 14px; break-inside: avoid; }
-            .value { font-size: 22px; font-weight: 700; margin-top: 6px; }
-            .row { display: flex; justify-content: space-between; margin-bottom: 10px; }
-            .muted { color: #6b7280; font-size: 14px; }
-            .section { margin-top: 16px; }
-            @media print {
-              body { margin: 0; }
-            }
+            h2 { font-size: 18px; margin: 20px 0 10px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+            th, td { border: 1px solid #d1d5db; padding: 8px; font-size: 13px; color: #111827; }
+            th { background: #f3f4f6; text-align: left; }
+            .kpi-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+            .kpi { border: 1px solid #d1d5db; border-radius: 8px; padding: 10px; }
+            .kpi-title { font-size: 12px; color: #6b7280; }
+            .kpi-value { font-size: 20px; font-weight: 700; color: #111827; margin-top: 6px; }
+            .meta { margin-top: 12px; }
           </style>
         </head>
         <body>
           <h1>SmartBiz Summary Report</h1>
           <p>Generated on ${new Date().toLocaleString()}</p>
-          <div>${reportHtml}</div>
+          <div class="kpi-grid">
+            <div class="kpi"><div class="kpi-title">Today's Sales</div><div class="kpi-value">${formatCurrency(report.todaySales)}</div></div>
+            <div class="kpi"><div class="kpi-title">Month's Sales</div><div class="kpi-value">${formatCurrency(report.monthSales)}</div></div>
+            <div class="kpi"><div class="kpi-title">Today's Profit</div><div class="kpi-value">${formatCurrency(report.todayProfit)}</div></div>
+            <div class="kpi"><div class="kpi-title">Month's Profit</div><div class="kpi-value">${formatCurrency(report.monthProfit)}</div></div>
+          </div>
+
+          <h2>Business Overview</h2>
+          <table>
+            <tr><th>Metric</th><th>Value</th></tr>
+            <tr><td>Total Customers</td><td>${report.totalCustomers ?? 0}</td></tr>
+            <tr><td>Total Products</td><td>${report.totalProducts ?? 0}</td></tr>
+          </table>
+
+          <h2>Low Stock Products</h2>
+          <table>
+            <tr><th>Product</th><th>SKU</th><th style="text-align:right;">Stock Qty</th></tr>
+            ${lowStockRows}
+          </table>
         </body>
       </html>
     `);
@@ -84,41 +118,62 @@ export default function ReportsPage() {
   };
 
   const handleDownloadPdf = async () => {
-    if (!reportRef.current) return;
     try {
       setExportingPdf(true);
-      const canvas = await html2canvas(reportRef.current, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: "#ffffff",
-      });
-
-      const imageData = canvas.toDataURL("image/png");
       const pdf = new jsPDF("p", "mm", "a4");
+      const left = 12;
+      let y = 16;
 
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      const margin = 10;
-      const imgWidth = pdfWidth - margin * 2;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(18);
+      pdf.text("SmartBiz Summary Report", left, y);
+      y += 7;
 
-      let remainingHeight = imgHeight;
-      let y = margin;
-
-      pdf.setFontSize(16);
-      pdf.text("SmartBiz Summary Report", margin, y);
+      pdf.setFont("helvetica", "normal");
       pdf.setFontSize(10);
-      pdf.text(`Generated: ${new Date().toLocaleString()}`, margin, y + 6);
+      pdf.text(`Generated: ${new Date().toLocaleString()}`, left, y);
       y += 10;
 
-      pdf.addImage(imageData, "PNG", margin, y, imgWidth, imgHeight);
-      remainingHeight -= (pdfHeight - y - margin);
+      const lines = [
+        `Today's Sales: ${formatCurrency(report.todaySales)}`,
+        `Month's Sales: ${formatCurrency(report.monthSales)}`,
+        `Today's Profit: ${formatCurrency(report.todayProfit)}`,
+        `Month's Profit: ${formatCurrency(report.monthProfit)}`,
+        `Total Customers: ${report.totalCustomers ?? 0}`,
+        `Total Products: ${report.totalProducts ?? 0}`,
+      ];
 
-      while (remainingHeight > 0) {
-        pdf.addPage();
-        const pageY = margin - (imgHeight - remainingHeight);
-        pdf.addImage(imageData, "PNG", margin, pageY, imgWidth, imgHeight);
-        remainingHeight -= (pdfHeight - margin * 2);
+      pdf.setFontSize(12);
+      pdf.setFont("helvetica", "bold");
+      pdf.text("Business Summary", left, y);
+      y += 7;
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(11);
+      lines.forEach((line) => {
+        pdf.text(line, left, y);
+        y += 6;
+      });
+      y += 4;
+
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(12);
+      pdf.text("Low Stock Products", left, y);
+      y += 7;
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(10);
+
+      if (report.lowStockProducts && report.lowStockProducts.length > 0) {
+        report.lowStockProducts.forEach((item, index) => {
+          const row = `${index + 1}. ${item.name} | SKU: ${item.sku || "-"} | Qty: ${item.stockQty}`;
+          if (y > 285) {
+            pdf.addPage();
+            y = 16;
+          }
+          pdf.text(row, left, y);
+          y += 6;
+        });
+      } else {
+        pdf.text("No low stock products", left, y);
       }
 
       pdf.save(`smartbiz-summary-report-${new Date().toISOString().slice(0, 10)}.pdf`);
@@ -170,7 +225,7 @@ export default function ReportsPage() {
         }
       />
 
-      <div ref={reportRef} className="space-y-6">
+      <div className="space-y-6">
       {/* Sales Overview */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 animate-fade-in">
         <Card className="animate-slide-up hover:shadow-xl transition-premium bg-gradient-to-br from-primary/5 to-transparent">
